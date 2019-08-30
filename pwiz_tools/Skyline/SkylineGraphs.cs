@@ -2984,9 +2984,12 @@ namespace pwiz.Skyline
 
         private void closeAllChromatogramsMenuItem_Click(object sender, EventArgs e)
         {
-            foreach (var graphChromatogram in _listGraphChrom)
+            using (new DockPanelLayoutLock(dockPanel, true))
             {
-                graphChromatogram.Hide();
+                foreach (var graphChromatogram in _listGraphChrom)
+                {
+                    graphChromatogram.Hide();
+                }
             }
         }
 

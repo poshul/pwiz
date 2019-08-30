@@ -537,9 +537,18 @@ namespace pwiz.Skyline
                 return;
             }
 
-            Trace.TraceError(@"Unhandled exception on UI thread: {0}", e.Exception);
-            var stackTrace = new StackTrace(1, true);
-            ReportExceptionUI(e.Exception, stackTrace);
+            try
+            {
+                Trace.TraceError(@"Unhandled exception on UI thread: {0}", e.Exception);
+                var stackTrace = new StackTrace(1, true);
+                ReportExceptionUI(e.Exception, stackTrace);
+            }
+            catch (Exception e2)
+            {
+                // We got an exception trying to bring up the Report Exception dialog.
+                // Skyline will have to shut down, but we rethrow an exception that preserves the original error.
+                throw new AggregateException(e.Exception, e2);
+            }
         }
 
         private static void ReportExceptionUI(Exception exception, StackTrace stackTrace)
