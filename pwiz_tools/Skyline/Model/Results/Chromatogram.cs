@@ -373,7 +373,7 @@ namespace pwiz.Skyline.Model.Results
         {
             for (int i = 0; i < _msDataFileInfo.Count; i++)
             {
-                if (Equals(_msDataFileInfo[i].FilePath, filePath))
+                if (Equals(_msDataFileInfo[i].FilePath.ToFileId(), filePath.ToFileId()))
                     return true;
             }
             return false;
@@ -431,7 +431,7 @@ namespace pwiz.Skyline.Model.Results
 
         public int IndexOfPath(MsDataFileUri filePath)
         {
-            return MSDataFileInfos.IndexOf(info => Equals(filePath, info.FilePath));
+            return MSDataFileInfos.IndexOf(info => Equals(filePath.ToFileId(), info.FilePath.ToFileId()));
         }
 
         public ChromFileInfoId FindFile(ChromatogramGroupInfo chromGroupInfo)
@@ -1141,10 +1141,12 @@ namespace pwiz.Skyline.Model.Results
         private const string TAG_LOCKMASS_TOL = "lockmass_tol";
         private const string TAG_CENTROID_MS1 = "centroid_ms1";
         private const string TAG_CENTROID_MS2 = "centroid_ms2";
+        private const string TAG_COMBINE_IMS = "combine_ims";
         private const string VAL_TRUE = "true";
+        private const string VAL_FALSE = "false";
 
         public static string EncodePath(string filePath, string sampleName, int sampleIndex, LockMassParameters lockMassParameters,
-            bool centroidMS1, bool centroidMS2)
+            bool centroidMS1, bool centroidMS2, bool? combineIonMobilitySpectra)
         {
             var parameters = new List<string>();
             const string pairFormat = "{0}={1}";
@@ -1175,6 +1177,10 @@ namespace pwiz.Skyline.Model.Results
             if (centroidMS2)
             {
                 parameters.Add(string.Format(CultureInfo.InvariantCulture, pairFormat, TAG_CENTROID_MS2, VAL_TRUE));
+            }
+            if (combineIonMobilitySpectra.HasValue)
+            {
+                parameters.Add(string.Format(CultureInfo.InvariantCulture, pairFormat, TAG_COMBINE_IMS, combineIonMobilitySpectra.Value ? VAL_TRUE : VAL_FALSE));
             }
 
             return parameters.Any() ? string.Format(@"{0}?{1}", filePart, string.Join(@"&", parameters)) : filePart;
@@ -1265,6 +1271,11 @@ namespace pwiz.Skyline.Model.Results
         public static bool GetCentroidMs2(string path)
         {
             return ParseParameterBool(TAG_CENTROID_MS2, path) ?? false;
+        }
+
+        public static bool? GetCombineIMS(string path)
+        {
+            return ParseParameterBool(TAG_COMBINE_IMS, path);
         }
 
         /// <summary>

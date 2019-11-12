@@ -41,6 +41,7 @@ namespace pwiz.Skyline.Model.Results.RemoteApi
             server,
             username,
             modified_time,
+            combine_ims,
         }
 
         public abstract RemoteAccountType AccountType { get; }
@@ -74,6 +75,7 @@ namespace pwiz.Skyline.Model.Results.RemoteApi
             Username = nameValueParameters.GetValue(Attr.username.ToString());
             EncodedPath = nameValueParameters.GetValue(Attr.path.ToString());
             ModifiedTime = nameValueParameters.GetDateValue(Attr.modified_time.ToString());
+            CombineIonMobilitySpectra = nameValueParameters.GetBoolValue(Attr.combine_ims.ToString());
         }
 
         public override MsDataFileUri ChangeCentroiding(bool centroidMS1, bool centroidMS2)
@@ -90,8 +92,16 @@ namespace pwiz.Skyline.Model.Results.RemoteApi
             return ChangeProp(ImClone(this), im => im.LockMassParameters = lockMassParameters);
         }
 
+        public override MsDataFileUri ChangeCombineIonMobilitySpectra(bool? combineIonMobilitySpectra)
+        {
+            return ChangeProp(ImClone(this), im => im.CombineIonMobilitySpectra = combineIonMobilitySpectra);
+        }
+
+
+
         public bool CentroidMs1 { get; private set; }
         public bool CentroidMs2 { get; private set; }
+        public bool? CombineIonMobilitySpectra { get; private set; }// True, false, and "let's try and see what happens"
         public LockMassParameters LockMassParameters { get; private set; }
         public string ServerUrl { get; private set; }
         public string Username { get; private set; }
@@ -120,6 +130,11 @@ namespace pwiz.Skyline.Model.Results.RemoteApi
         public override bool GetCentroidMs2()
         {
             return CentroidMs2;
+        }
+
+        public override bool? GetCombineIonMobilitySpectra()
+        {
+            return CombineIonMobilitySpectra;
         }
 
         public override string GetExtension()
@@ -152,6 +167,7 @@ namespace pwiz.Skyline.Model.Results.RemoteApi
             var nameValuePairs = new NameValueParameters();
             nameValuePairs.SetBoolValue(Attr.centroid_ms1.ToString(), CentroidMs1);
             nameValuePairs.SetBoolValue(Attr.centroid_ms2.ToString(), CentroidMs2);
+            nameValuePairs.SetBoolValue(Attr.combine_ims.ToString(), CombineIonMobilitySpectra??true);
             nameValuePairs.SetDoubleValue(Attr.lockmass_neg.ToString(), LockMassParameters.LockmassNegative);
             nameValuePairs.SetDoubleValue(Attr.lockmass_pos.ToString(), LockMassParameters.LockmassPositive);
             nameValuePairs.SetDoubleValue(Attr.lockmass_tol.ToString(), LockMassParameters.LockmassTolerance);
@@ -165,6 +181,11 @@ namespace pwiz.Skyline.Model.Results.RemoteApi
         public override string ToString()
         {
             return AccountType.Name + @":" + GetParameters();
+        }
+
+        public override string ToFileId()
+        {
+            return GetFilePath();
         }
 
         public override int GetSampleIndex()
@@ -246,7 +267,13 @@ namespace pwiz.Skyline.Model.Results.RemoteApi
                 return string.Empty;
             }
 
-            public override MsDataFileImpl OpenMsDataFile(bool simAsSpectra, int preferOnlyMsLevel, bool combineIonMobilitySpectra, bool ignoreZeroIntensityPoints)
+            public override string ToFileId()
+            {
+                return string.Empty;
+            }
+
+
+            public override MsDataFileImpl OpenMsDataFile(bool simAsSpectra, int preferOnlyMsLevel, bool? combineIonMobilitySpectra, bool ignoreZeroIntensityPoints)
             {
                 throw new InvalidOperationException();
             }

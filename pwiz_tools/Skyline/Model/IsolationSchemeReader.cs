@@ -145,7 +145,7 @@ namespace pwiz.Skyline.Model
             var listRanges = new List<IsolationRange>(isolationRanges);
             double minStart = double.MaxValue, maxStart = double.MinValue;
 
-            using (var dataFile = new MsDataFileImpl(dataSource.GetFilePath(), simAsSpectra: true))
+            using (var dataFile = new MsDataFileImpl(dataSource.GetFilePath(), null, simAsSpectra: true))
             {
                 int lookAheadCount = Math.Min(MAX_MULTI_CYCLE, dataFile.SpectrumCount);
                 for (int i = 0; i < lookAheadCount; i++)

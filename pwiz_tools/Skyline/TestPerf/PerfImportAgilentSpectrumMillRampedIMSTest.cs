@@ -317,7 +317,7 @@ namespace TestPerf // Note: tests in the "TestPerf" namespace only run when the 
             }
             else
             {
-                var instrumentInfo = new DataFileInstrumentInfo(new MsDataFileImpl(GetTestPath(basename+".d")));
+                var instrumentInfo = new DataFileInstrumentInfo(new MsDataFileImpl(GetTestPath(basename+".d"), null));
                 var dictExplicitDT = driftInfoExplicitDT.GetIonMobilityDict();
                 foreach (var pep in doc1.Peptides)
                 {

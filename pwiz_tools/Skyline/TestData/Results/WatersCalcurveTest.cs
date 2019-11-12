@@ -68,12 +68,12 @@ namespace pwiz.SkylineTestData.Results
             //     Assert.IsTrue(msData.IsThermoFile);
             // }
 
-            using (var msData = new MsDataFileImpl(testFilesDir.GetTestPath("160109_Mix1_calcurve_073.mzML")))
+            using (var msData = new MsDataFileImpl(testFilesDir.GetTestPath("160109_Mix1_calcurve_073.mzML"), null))
             {
                 Assert.IsTrue(msData.IsWatersFile);
             }
 
-            using (var msData = new MsDataFileImpl(testFilesDir.GetTestPath("160109_Mix1_calcurve_078.mzML")))
+            using (var msData = new MsDataFileImpl(testFilesDir.GetTestPath("160109_Mix1_calcurve_078.mzML"), null))
             {
                 Assert.IsTrue(msData.IsWatersFile);
             }

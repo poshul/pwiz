@@ -173,7 +173,7 @@ namespace pwiz.Skyline.Model.Results
 
         public bool IsCachedFile(MsDataFileUri filePath)
         {
-            return _setCachedFiles.Contains(filePath);
+            return _setCachedFiles.Any(f => Equals(f.ToFileId(), filePath.ToFileId())); // Compare ignoring centroiding and combineIMS settings, which may change after file is opened and inspected
         }
 
         public IEnumerable<Type> CachedScoreTypes
@@ -246,7 +246,7 @@ namespace pwiz.Skyline.Model.Results
 
         public bool IsDataFilePath(MsDataFileUri path)
         {
-            return _setFiles.Contains(path);
+            return _setFiles.Any(f => Equals(f.ToFileId(), path.ToFileId())); // Compare ignoring centroiding and combineIMS settings, which may change after file is opened and inspected
         }
 
         public ChromFileInfo GetChromFileInfo<TChromInfo>(Results<TChromInfo> results, int replicateIndex)
@@ -340,7 +340,7 @@ namespace pwiz.Skyline.Model.Results
             {
                 foreach (var filePath in chromSet.MSDataFilePaths)
                 {
-                    if (Equals(filePath, filePathFind))
+                    if (Equals(filePath.ToFileId(), filePathFind.ToFileId()))
                         return new ChromSetFileMatch(chromSet, filePath, fileOrder);
                     fileOrder++;
                 }

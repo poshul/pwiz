@@ -33,7 +33,7 @@ namespace pwiz.Skyline.Model
         public const int MAX_PARALLEL_LOAD_FILES = 12;
 
         private readonly QueueWorker<LoadInfo> _worker;
-        private readonly Dictionary<MsDataFileUri, int> _loadingPaths;
+        private readonly Dictionary<string, int> _loadingPaths;
         private readonly bool _synchronousMode;
         private int? _threadCountPreferred;
         private ImportResultsSimultaneousFileOptions _simultaneousFileOptions;
@@ -44,7 +44,7 @@ namespace pwiz.Skyline.Model
         public MultiFileLoader(bool synchronousMode)
         {
             _worker = new QueueWorker<LoadInfo>(null, LoadFile);
-            _loadingPaths = new Dictionary<MsDataFileUri, int>();
+            _loadingPaths = new Dictionary<string, int>();
             _synchronousMode = synchronousMode;
             _statusLock = new object();
             ResetStatus();
@@ -171,10 +171,10 @@ namespace pwiz.Skyline.Model
                 foreach (var loadItem in loadList)
                 {
                     // Ignore a file that is already being loaded (or is queued for loading).
-                    if (_loadingPaths.ContainsKey(loadItem.DataFile))
+                    if (_loadingPaths.ContainsKey(loadItem.DataFile.ToFileId()))
                         continue;
                     int idIndex = document.Id.GlobalIndex;
-                    _loadingPaths.Add(loadItem.DataFile, idIndex);
+                    _loadingPaths.Add(loadItem.DataFile.ToFileId(), idIndex);
                     uniqueLoadList.Add(loadItem);
                 }
 
@@ -218,7 +218,7 @@ namespace pwiz.Skyline.Model
         {
             lock (this)
             {
-                _loadingPaths.Remove(filePath);
+                _loadingPaths.Remove(filePath.ToFileId());
                 if (_loadingPaths.Count == 0)
                     ResetStatus();
             }

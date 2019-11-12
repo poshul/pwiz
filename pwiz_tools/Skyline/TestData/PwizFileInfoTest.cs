@@ -209,7 +209,7 @@ namespace pwiz.SkylineTestData
             if (!MsDataFileImpl.SupportsMultipleSamples(path))
                 sampleIndex = 0;
 
-            using (var msDataFile = new MsDataFileImpl(path, sampleIndex))
+            using (var msDataFile = new MsDataFileImpl(path, null, sampleIndex))
             {
                 var tic = msDataFile.GetTotalIonCurrent();
                 Assert.AreEqual(count, tic.Length);
@@ -239,7 +239,7 @@ namespace pwiz.SkylineTestData
             if (!MsDataFileImpl.SupportsMultipleSamples(path))
                 sampleIndex = 0;
 
-            using (var msDataFile = new MsDataFileImpl(path, sampleIndex))
+            using (var msDataFile = new MsDataFileImpl(path, null, sampleIndex))
             {
                 Assert.AreEqual(serialNumber, msDataFile.GetInstrumentSerialNumber());
             }

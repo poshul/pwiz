@@ -318,17 +318,18 @@ namespace pwiz.Skyline.Controls.Graphs
             GraphPane.Title.Text = string.Format(Resources.GraphFullScan_CreateGraph__0_____1_F2__min_, _msDataFileScanHelper.FileName, retentionTime);
             if (Settings.Default.ShowFullScanNumber && _msDataFileScanHelper.MsDataSpectra.Any())
             {
+                var id = _msDataFileScanHelper.MsDataSpectra[0].Id;
                 if (_msDataFileScanHelper.MsDataSpectra.Length > 1) // For 2-array ion mobility, show the overall range
                 {
+                    var idLast = _msDataFileScanHelper.MsDataSpectra.Last().Id;
                     GraphPane.Title.Text = TextUtil.SpaceSeparate(GraphPane.Title.Text,
-                        Resources.GraphFullScan_CreateGraph_IM_Scan_Range_, _msDataFileScanHelper.MsDataSpectra[0].Id, @"-", _msDataFileScanHelper.MsDataSpectra.Last().Id); 
+                        Resources.GraphFullScan_CreateGraph_IM_Scan_Range_, id, @"-", idLast); 
                 }
                 else
                 {
                     var parts = _msDataFileScanHelper.MsDataSpectra[0].Id.Split('.'); // Check for merge.frame.start.stop from 3-array IMS data
-                    var id = parts.Length < 4
-                        ? _msDataFileScanHelper.MsDataSpectra[0].Id
-                        : string.Format(@"{0}.{1}-{0}.{2}", parts[1], parts[2], parts[3]);
+                    if (parts.Length > 3) // Bruker combined IMS
+                        id = string.Format(@"{0}.{1}-{0}.{2}", parts[1], parts[2], parts[3]);
                     GraphPane.Title.Text = TextUtil.SpaceSeparate(GraphPane.Title.Text,
                         Resources.GraphFullScan_CreateGraph_Scan_Number_, id);
                 }

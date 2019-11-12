@@ -1397,9 +1397,11 @@ namespace pwiz.Skyline.Model.Results
         }
 
         public ChromCachedFile(MsDataFileUri filePath, FlagValues flags, DateTime fileWriteTime, DateTime? runStartTime,
-                               float maxRT, float maxIntensity, eIonMobilityUnits ionMobilityUnits, string sampleId, string serialNumber,
+                               float maxRT, float maxIntensity, eIonMobilityUnits ionMobilityUnits, bool hasCombinedIonMobilitySpectra, 
+                               string sampleId, string serialNumber,
                                IEnumerable<MsInstrumentConfigInfo> instrumentInfoList)
-            : this(filePath, flags, fileWriteTime, runStartTime, maxRT, maxIntensity, 0, 0, default(float?), ionMobilityUnits, sampleId, serialNumber, instrumentInfoList)
+            : this(filePath, flags, fileWriteTime, runStartTime, maxRT, maxIntensity, 0, 0, default(float?), 
+                ionMobilityUnits, hasCombinedIonMobilitySpectra, sampleId, serialNumber, instrumentInfoList)
         {
         }
 
@@ -1413,12 +1415,14 @@ namespace pwiz.Skyline.Model.Results
                                long locationScanIds,
                                float? ticArea,
                                eIonMobilityUnits ionMobilityUnits,
+                               bool hasCombinedIonMobilitySpectra,
                                string sampleId,
                                string instrumentSerialNumber,
                                IEnumerable<MsInstrumentConfigInfo> instrumentInfoList)
         {
             FilePath = filePath;
             Flags = (flags & ~FlagValues.ion_mobility_type_bitmask) | (FlagValues)((int)ionMobilityUnits << 4);
+            HasCombinedIonMobilitySpectra = hasCombinedIonMobilitySpectra;
             FileWriteTime = fileWriteTime;
             RunStartTime = runStartTime;
             MaxRetentionTime = maxRT;
@@ -1433,6 +1437,7 @@ namespace pwiz.Skyline.Model.Results
 
         public MsDataFileUri FilePath { get; private set; }
         public FlagValues Flags { get; private set; }
+        public bool HasCombinedIonMobilitySpectra { get; private set; }
         public DateTime FileWriteTime { get; private set; }
         public DateTime? RunStartTime { get; private set; }
         public float MaxRetentionTime { get; private set; }

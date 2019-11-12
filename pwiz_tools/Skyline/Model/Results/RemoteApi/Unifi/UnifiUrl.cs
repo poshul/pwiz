@@ -62,7 +62,7 @@ namespace pwiz.Skyline.Model.Results.RemoteApi.Unifi
             return result;
         }
 
-        public override MsDataFileImpl OpenMsDataFile(bool simAsSpectra, int preferOnlyMsLevel, bool combineIonMobilitySpectra, bool ignoreZeroIntensityPoints)
+        public override MsDataFileImpl OpenMsDataFile(bool simAsSpectra, int preferOnlyMsLevel, bool? combineIonMobilitySpectra, bool ignoreZeroIntensityPoints)
         {
             var account = FindMatchingAccount(Settings.Default.RemoteAccountList) as UnifiAccount;
             if (account == null)
@@ -77,10 +77,9 @@ namespace pwiz.Skyline.Model.Results.RemoteApi.Unifi
                          Uri.EscapeDataString(account.ClientScope) + "&secret=" +
                          Uri.EscapeDataString(account.ClientSecret);
             // ReSharper restore LocalizableElement
-            return new MsDataFileImpl(serverUrl, 0, LockMassParameters, simAsSpectra,
+            return new MsDataFileImpl(serverUrl, combineIonMobilitySpectra, 0, LockMassParameters, simAsSpectra,
                 requireVendorCentroidedMS1: CentroidMs1, requireVendorCentroidedMS2: CentroidMs2,
-                ignoreZeroIntensityPoints: ignoreZeroIntensityPoints, preferOnlyMsLevel: preferOnlyMsLevel,
-                combineIonMobilitySpectra: combineIonMobilitySpectra);
+                ignoreZeroIntensityPoints: ignoreZeroIntensityPoints, preferOnlyMsLevel: preferOnlyMsLevel);
         }
     }
 }

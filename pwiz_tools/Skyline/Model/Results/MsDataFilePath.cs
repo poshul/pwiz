@@ -27,10 +27,11 @@ namespace pwiz.Skyline.Model.Results
     public abstract class MsDataFileUri : Immutable, IComparable
     {
         public abstract MsDataFileUri GetLocation();
-        public abstract string GetFilePath();
+        public abstract string GetFilePath(); // Gets the file path without any of the sample index or centroiding and combineIMS info
         public abstract string GetFileName();
         public abstract string GetFileNameWithoutExtension();
-        public abstract override string ToString();
+        public abstract override string ToString(); // Gets the file path with the sample index and centroiding and combineIMS info
+        public abstract string ToFileId(); // Gets the file path and any sample index info, but no centroiding or combineIMS info
         public abstract DateTime GetFileLastWriteTime();
         public abstract string GetSampleName();
         public abstract int GetSampleIndex();
@@ -43,12 +44,14 @@ namespace pwiz.Skyline.Model.Results
         /// Returns a copy of itself with updated lockmass parameters
         /// </summary>
         public abstract MsDataFileUri ChangeLockMassParameters(LockMassParameters lockMassParameters);
+        public abstract bool? GetCombineIonMobilitySpectra(); // Nullable: true, false, "let's try and see what happens"
         public abstract bool GetCentroidMs1();
         public abstract bool GetCentroidMs2();
         /// <summary>
         /// Returns a copy of itself with updated centroiding parameters
         /// </summary>
         public abstract MsDataFileUri ChangeCentroiding(bool centroidMS1, bool centroidMS2);
+        public abstract MsDataFileUri ChangeCombineIonMobilitySpectra(bool? combineIonMobilitySpectra);
 
         public MsDataFileUri ChangeParameters(SrmDocument doc, LockMassParameters lockMassParameters)
         {
@@ -71,10 +74,11 @@ namespace pwiz.Skyline.Model.Results
                 SampleHelp.GetPathSampleIndexPart(url),
                 SampleHelp.GetLockmassParameters(url),
                 SampleHelp.GetCentroidMs1(url),
-                SampleHelp.GetCentroidMs2(url));
+                SampleHelp.GetCentroidMs2(url),
+                SampleHelp.GetCombineIMS(url));
         }
 
-        public abstract MsDataFileImpl OpenMsDataFile(bool simAsSpectra, int preferOnlyMsLevel, bool combineIonMobilitySpectra, bool ignoreZeroIntensityPoints);
+        public abstract MsDataFileImpl OpenMsDataFile(bool simAsSpectra, int preferOnlyMsLevel, bool? combineIonMobilitySpectra, bool ignoreZeroIntensityPoints);
         public int CompareTo(object obj)
         {
             if (obj == null)
@@ -90,12 +94,12 @@ namespace pwiz.Skyline.Model.Results
     {
         public static readonly MsDataFilePath EMPTY = new MsDataFilePath(string.Empty);
         public MsDataFilePath(string filePath, LockMassParameters lockMassParameters = null, 
-            bool centroidMs1=false, bool centroidMs2=false)
-            : this(filePath, null, -1, lockMassParameters, centroidMs1, centroidMs2)
+            bool centroidMs1=false, bool centroidMs2=false, bool? combineIonMobilitySpectra = null)
+            : this(filePath, null, -1, lockMassParameters, centroidMs1, centroidMs2, combineIonMobilitySpectra)
         {
         }
         public MsDataFilePath(string filePath, string sampleName, int sampleIndex, LockMassParameters lockMassParameters = null,
-            bool centroidMs1 = false, bool centroidMs2 = false)
+            bool centroidMs1 = false, bool centroidMs2 = false, bool? combineIonMobilitySpectra = null)
         {
             FilePath = filePath;
             SampleName = sampleName;
@@ -103,6 +107,8 @@ namespace pwiz.Skyline.Model.Results
             LockMassParameters = lockMassParameters ?? LockMassParameters.EMPTY;
             CentroidMs1 = centroidMs1;
             CentroidMs2 = centroidMs2;
+            CombineIonMobilitySpectra = combineIonMobilitySpectra;
+            FileId = SampleHelp.EncodePath(FilePath, SampleName, SampleIndex, null, false, false, null);
         }
 
         protected MsDataFilePath(MsDataFilePath msDataFilePath)
@@ -113,6 +119,8 @@ namespace pwiz.Skyline.Model.Results
             LockMassParameters = msDataFilePath.LockMassParameters;
             CentroidMs1 = msDataFilePath.CentroidMs1;
             CentroidMs2 = msDataFilePath.CentroidMs2;
+            CombineIonMobilitySpectra = msDataFilePath.CombineIonMobilitySpectra;
+            FileId = msDataFilePath.FileId;
         }
 
         public string FilePath { get; private set; }
@@ -121,15 +129,18 @@ namespace pwiz.Skyline.Model.Results
         {
             return new MsDataFilePath(this){FilePath = filePath};
         }
-        public string SampleName { get; private set; }
-        public int SampleIndex { get; private set; }
-        public LockMassParameters LockMassParameters { get; private set; }
-        public bool CentroidMs1 { get; private set; }
-        public bool CentroidMs2 { get; private set; }
+        public string SampleName { get; }
+        public int SampleIndex { get; }
+        public LockMassParameters LockMassParameters { get; }
+        public bool CentroidMs1 { get;  }
+        public bool CentroidMs2 { get;  }
+        public bool? CombineIonMobilitySpectra { get; } // True, false, and "let's try and see what happens"
+        public string FileId { get; }
 
+        // Get an undecorated name
         public override MsDataFileUri GetLocation()
         {
-            if (!LockMassParameters.IsEmpty || CentroidMs1 || CentroidMs2)
+            if (!LockMassParameters.IsEmpty || CentroidMs1 || CentroidMs2 || CombineIonMobilitySpectra!=false)
                 return new MsDataFilePath(FilePath, SampleName, SampleIndex);
             return this;
         }
@@ -171,7 +182,7 @@ namespace pwiz.Skyline.Model.Results
                 return false; // Thermo .raw is a file, Waters .raw is actually a directory
             try
             {
-                using (var f = new MsDataFileImpl(filePath))
+                using (var f = new MsDataFileImpl(filePath, false))
                     return f.IsWatersLockmassCorrectionCandidate;
             }
             catch (Exception)
@@ -187,7 +198,7 @@ namespace pwiz.Skyline.Model.Results
 
         public override MsDataFileUri ChangeLockMassParameters(LockMassParameters lockMassParameters)
         {
-            return new MsDataFilePath(FilePath, SampleName, SampleIndex, lockMassParameters, CentroidMs1, CentroidMs2);
+            return new MsDataFilePath(FilePath, SampleName, SampleIndex, lockMassParameters, CentroidMs1, CentroidMs2, CombineIonMobilitySpectra);
         }
 
         public override bool GetCentroidMs1()
@@ -202,12 +213,27 @@ namespace pwiz.Skyline.Model.Results
 
         public override MsDataFileUri ChangeCentroiding(bool centroidMS1, bool centroidMS2)
         {
-            return new MsDataFilePath(FilePath, SampleName, SampleIndex, LockMassParameters, centroidMS1, centroidMS2);
+            return new MsDataFilePath(FilePath, SampleName, SampleIndex, LockMassParameters, centroidMS1, centroidMS2, CombineIonMobilitySpectra);
+        }
+
+        public override bool? GetCombineIonMobilitySpectra()
+        {
+            return CombineIonMobilitySpectra;
+        }
+
+        public override MsDataFileUri ChangeCombineIonMobilitySpectra(bool? combineIonMobilitySpectra)
+        {
+            return new MsDataFilePath(FilePath, SampleName, SampleIndex, LockMassParameters, CentroidMs1, CentroidMs2, combineIonMobilitySpectra);
         }
 
         public override string ToString()
         {
-            return SampleHelp.EncodePath(FilePath, SampleName, SampleIndex, LockMassParameters, CentroidMs1, CentroidMs2);
+            return SampleHelp.EncodePath(FilePath, SampleName, SampleIndex, LockMassParameters, CentroidMs1, CentroidMs2, CombineIonMobilitySpectra);
+        }
+
+        public override string ToFileId()
+        {
+            return FileId;
         }
 
         public override DateTime GetFileLastWriteTime()
@@ -237,6 +263,7 @@ namespace pwiz.Skyline.Model.Results
                 SampleIndex == other.SampleIndex &&
                 CentroidMs1 == other.CentroidMs1 &&
                 CentroidMs2 == other.CentroidMs2 &&
+                CombineIonMobilitySpectra == other.CombineIonMobilitySpectra &&
                 LockMassParameters.Equals(other.LockMassParameters);
         }
 
@@ -258,16 +285,16 @@ namespace pwiz.Skyline.Model.Results
                 hashCode = (hashCode*397) ^ (LockMassParameters != null ? LockMassParameters.GetHashCode() : 0);
                 hashCode = (hashCode*397) ^ (CentroidMs1 ? 1 : 0);
                 hashCode = (hashCode*397) ^ (CentroidMs2 ? 1 : 0);
+                hashCode = (hashCode * 397) ^ (CombineIonMobilitySpectra.HasValue ? (CombineIonMobilitySpectra.Value ? 1 : 0) : -1);
                 return hashCode;
             }
         }
 
-        public override MsDataFileImpl OpenMsDataFile(bool simAsSpectra, int preferOnlyMsLevel, bool combineIonMobilitySpectra, bool ignoreZeroIntensityPoints)
+        public override MsDataFileImpl OpenMsDataFile(bool simAsSpectra, int preferOnlyMsLevel, bool? combineIonMobilitySpectra, bool ignoreZeroIntensityPoints)
         {
-            return new MsDataFileImpl(FilePath, Math.Max(SampleIndex, 0), LockMassParameters, simAsSpectra,
+            return new MsDataFileImpl(FilePath, combineIonMobilitySpectra, Math.Max(SampleIndex, 0), LockMassParameters, simAsSpectra,
                 requireVendorCentroidedMS1: CentroidMs1, requireVendorCentroidedMS2: CentroidMs2,
-                ignoreZeroIntensityPoints: ignoreZeroIntensityPoints, preferOnlyMsLevel: preferOnlyMsLevel,
-                combineIonMobilitySpectra: combineIonMobilitySpectra);
+                ignoreZeroIntensityPoints: ignoreZeroIntensityPoints, preferOnlyMsLevel: preferOnlyMsLevel);
         }
     }
 }

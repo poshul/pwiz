@@ -42,7 +42,7 @@ namespace TestPerf // Note: tests in the "TestPerf" namespace only run when the 
         [TestMethod]
         public void MeasuredInverseK0ValuesPerfTest()
         {
-            TestFilesZip = "https://skyline.gs.washington.edu/perftests/PerfMeasuredInverseK0.zip";
+            TestFilesZip = "https://skyline.gs.washington.edu/perftests/PerfMeasuredInverseK0_v2.zip";
             TestFilesPersistent = new[] { "BSA_50fmol_TIMS_InfusionESI_10prec.d", bsaFmolTimsInfusionesiPrecMz5Mz5 }; // list of files that we'd like to unzip alongside parent zipFile, and (re)use in place
 
             RunFunctionalTest();
@@ -77,8 +77,13 @@ namespace TestPerf // Note: tests in the "TestPerf" namespace only run when the 
                 driftTimePredictorDlg.SetPredictorName("test_tims");
                 driftTimePredictorDlg.SetResolvingPower(40);
                 driftTimePredictorDlg.GetDriftTimesFromResults();
-                driftTimePredictorDlg.OkDialog(true); // Force overwrite if a named predictor already exists
+//                driftTimePredictorDlg.OkDialog(true); // Force overwrite if a named predictor already exists
             });
+PauseTest();
+RunUI(() =>
+{
+    driftTimePredictorDlg.OkDialog(true); // Force overwrite if a named predictor already exists
+});
             WaitForClosedForm(driftTimePredictorDlg);
             RunUI(() =>
             {
@@ -123,7 +128,7 @@ namespace TestPerf // Note: tests in the "TestPerf" namespace only run when the 
             var mz5 = TestFilesDir.GetTestPath(bsaFmolTimsInfusionesiPrecMz5Mz5);
             ImportResultsFile(mz5);
             document = WaitForDocumentChange(document);
-//PauseTest(); uncomment this to play with raw data display 
+PauseTest(); // uncomment this to play with raw data display 
             foreach (var nodeGroup in document.MoleculeTransitionGroups)
             {
                 Assume.AreEqual(2, nodeGroup.Results.Count);

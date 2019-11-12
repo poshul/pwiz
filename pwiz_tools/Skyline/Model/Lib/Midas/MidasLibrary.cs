@@ -646,7 +646,7 @@ namespace pwiz.Skyline.Model.Lib.Midas
                     if (File.Exists(filePath))
                     {
                         var sampleIndex = resultsFile.GetSampleIndex();
-                        using (var msd = new MsDataFileImpl(filePath, sampleIndex == -1 ? 0 : sampleIndex, resultsFile.GetLockMassParameters(), requireVendorCentroidedMS2: true))
+                        using (var msd = new MsDataFileImpl(filePath, null, sampleIndex == -1 ? 0 : sampleIndex, resultsFile.GetLockMassParameters(), requireVendorCentroidedMS2: true))
                         {
                             if (ChromatogramDataProvider.HasChromatogramData(msd) && SpectraChromDataProvider.HasSpectrumData(msd))
                             {

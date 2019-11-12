@@ -48,6 +48,7 @@ namespace pwiz.Skyline.Model.Results
         private bool _isSingleMzMatch;
         private bool _sourceHasPositivePolarityData;
         private bool _sourceHasNegativePolarityData;
+        private bool _sourceHasCombinedIonMobility;
         private double? _ticArea;
 
         private readonly ChromatogramLoadingStatus.TransitionData _allChromData;
@@ -85,6 +86,7 @@ namespace pwiz.Skyline.Model.Results
             _document = document;
             _cachePath = cachePath;
             _globalChromatogramExtractor = new GlobalChromatogramExtractor(dataFile);
+            _sourceHasCombinedIonMobility = dataFile.HasCombinedIonMobilitySpectra;
 
             // If no SRM spectra, then full-scan filtering must be enabled
             _isSrm = dataFile.HasSrmSpectra;
@@ -221,6 +223,8 @@ namespace pwiz.Skyline.Model.Results
         }
 
         public override eIonMobilityUnits IonMobilityUnits { get { return _filter.IonMobilityUnits; } }
+
+        public override bool HasCombinedIonMobilitySpectra => _sourceHasCombinedIonMobility;
 
         private void ExtractionComplete()
         {
@@ -1468,7 +1472,7 @@ namespace pwiz.Skyline.Model.Results
                 }
                 else
                 {
-                    // No need to search forward, this isn't IMS or Agilent ramped-CE data
+                    // No need to search forward, this isn't non-combined-IMS or Agilent ramped-CE data
                     rtReported = dataSpectrum.RetentionTime;
                     if (rtReported.HasValue && dataSpectrum.Mzs.Length != 0)
                     {

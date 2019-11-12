@@ -47,8 +47,8 @@ namespace pwiz.Skyline.Controls.Graphs
         private int _nextRetry;
         private ImportResultsRetryCountdownDlg _retryDlg;
 
-        private Dictionary<MsDataFileUri, FileProgressControl> _fileProgressControls =
-            new Dictionary<MsDataFileUri, FileProgressControl>();
+        private Dictionary<string, FileProgressControl> _fileProgressControls =
+            new Dictionary<string, FileProgressControl>();
 
         private const int RETRY_INTERVAL = 10;
         private const int RETRY_COUNTDOWN = 30;
@@ -476,23 +476,23 @@ namespace pwiz.Skyline.Controls.Graphs
             flowFileStatus.Controls.AddRange(controlsToAdd.ToArray());
             foreach (var control in controlsToAdd)
             {
-                _fileProgressControls.Add(control.FilePath, control);
+                _fileProgressControls.Add(control.FilePath.ToFileId(), control);
             }
         }
 
         private void CancelMissingFiles(MultiProgressStatus status)
         {
-            HashSet<MsDataFileUri> filesWithStatus = null;
+            HashSet<string> filesWithStatus = null;
             foreach (FileProgressControl progressControl in flowFileStatus.Controls)
             {
                 if (!progressControl.IsComplete && !progressControl.IsCanceled)
                 {
                     if (filesWithStatus == null)
                     {
-                        filesWithStatus = new HashSet<MsDataFileUri>(status.ProgressList
-                            .Select(loadingStatus => loadingStatus.FilePath));
+                        filesWithStatus = new HashSet<string>(status.ProgressList
+                            .Select(loadingStatus => loadingStatus.FilePath.ToFileId()));
                     }
-                    if (!filesWithStatus.Contains(progressControl.FilePath))
+                    if (!filesWithStatus.Contains(progressControl.FilePath.ToFileId()))
                         progressControl.IsCanceled = true;
                 }
             }
@@ -501,7 +501,7 @@ namespace pwiz.Skyline.Controls.Graphs
         private FileProgressControl FindProgressControl(MsDataFileUri filePath)
         {
             FileProgressControl fileProgressControl;
-            _fileProgressControls.TryGetValue(filePath, out fileProgressControl);
+            _fileProgressControls.TryGetValue(filePath.ToFileId(), out fileProgressControl);
             return fileProgressControl;
         }
 

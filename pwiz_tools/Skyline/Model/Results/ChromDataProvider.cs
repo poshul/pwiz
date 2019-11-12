@@ -91,6 +91,8 @@ namespace pwiz.Skyline.Model.Results
 
         public abstract eIonMobilityUnits IonMobilityUnits { get; }
 
+        public abstract bool HasCombinedIonMobilitySpectra { get; }
+
         public abstract bool IsProcessedScans { get; }
 
         public abstract bool IsSingleMzMatch { get; }
@@ -362,6 +364,8 @@ namespace pwiz.Skyline.Model.Results
         }
 
         public override eIonMobilityUnits IonMobilityUnits { get { return eIonMobilityUnits.none; } }
+
+        public override bool HasCombinedIonMobilitySpectra => _dataFile?.HasCombinedIonMobilitySpectra == true;
 
         public override bool GetChromatogram(int id, Target modifiedSequence, Color color, out ChromExtra extra, out TimeIntensities timeIntensities)
         {

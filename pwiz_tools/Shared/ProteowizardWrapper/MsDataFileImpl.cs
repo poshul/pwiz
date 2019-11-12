@@ -138,17 +138,16 @@ namespace pwiz.ProteowizardWrapper
             return id.StartsWith(PREFIX_SINGLE) || id.StartsWith(PREFIX_PRECURSOR);
         }
 
-        public MsDataFileImpl(string path, int sampleIndex = 0, LockMassParameters lockmassParameters = null,
+        public MsDataFileImpl(string path, bool? combineIonMobilitySpectra = null, int sampleIndex = 0, LockMassParameters lockmassParameters = null,
             bool simAsSpectra = false, bool srmAsSpectra = false, bool acceptZeroLengthSpectra = true,
             bool requireVendorCentroidedMS1 = false, bool requireVendorCentroidedMS2 = false,
             bool ignoreZeroIntensityPoints = false, 
-            int preferOnlyMsLevel = 0,
-            bool combineIonMobilitySpectra = true)
+            int preferOnlyMsLevel = 0)
         {
 
             // see note above on enabling performance measurement
             _perf = PerfUtilFactory.CreatePerfUtil(@"MsDataFileImpl " +
-                string.Format(@"{0},sampleIndex:{1},lockmassCorrection:{2},simAsSpectra:{3},srmAsSpectra:{4},acceptZeroLengthSpectra:{5},requireVendorCentroidedMS1:{6},requireVendorCentroidedMS2:{7},preferOnlyMsLevel:{8},combineIonMobilitySpectra:{9}",
+                String.Format(@"{0},sampleIndex:{1},lockmassCorrection:{2},simAsSpectra:{3},srmAsSpectra:{4},acceptZeroLengthSpectra:{5},requireVendorCentroidedMS1:{6},requireVendorCentroidedMS2:{7},preferOnlyMsLevel:{8},combineIonMobilitySpectra:{9}",
                 path, sampleIndex, !(lockmassParameters == null || lockmassParameters.IsEmpty), simAsSpectra, srmAsSpectra, acceptZeroLengthSpectra, requireVendorCentroidedMS1, requireVendorCentroidedMS2, preferOnlyMsLevel, combineIonMobilitySpectra));
             using (_perf.CreateTimer(@"open"))
             {
@@ -163,7 +162,7 @@ namespace pwiz.ProteowizardWrapper
                     ignoreZeroIntensityPoints = ignoreZeroIntensityPoints,
                     preferOnlyMsLevel = preferOnlyMsLevel,
                     allowMsMsWithoutPrecursor = false,
-                    combineIonMobilitySpectra = combineIonMobilitySpectra
+                    combineIonMobilitySpectra = combineIonMobilitySpectra??true
                 };
                 _lockmassParameters = lockmassParameters;
                 FULL_READER_LIST.read(path, _msDataFile, sampleIndex, _config);
@@ -567,7 +566,7 @@ namespace pwiz.ProteowizardWrapper
             return GetMaxIonMobilityInList();
         }
 
-        public bool HasCombinedIonMobilitySpectra => _config.combineIonMobilitySpectra;
+        public bool HasCombinedIonMobilitySpectra => _ionMobilitySpectrumList != null && _ionMobilitySpectrumList.hasCombinedIonMobility();
 
         /// <summary>
         /// Gets the value of the MS_sample_name CV param of first sample in the MSData object, or null if there is no sample information.

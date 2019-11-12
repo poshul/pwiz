@@ -164,6 +164,7 @@ namespace pwiz.Skyline.Model.Results
                 var dataFilePath = MSDataFilePath;
                 var centroidMS1 = MSDataFilePath.GetCentroidMs1();
                 var centroidMS2 = MSDataFilePath.GetCentroidMs2();
+                var combineIonMobilitySpectra = MSDataFilePath.GetCombineIonMobilitySpectra();
                 var msDataFilePath = MSDataFilePath as MsDataFilePath;
                 if (msDataFilePath != null)
                 {
@@ -189,11 +190,14 @@ namespace pwiz.Skyline.Model.Results
                         var enableSimSpectrum = fullScan.IsEnabled;
                         var preferOnlyMsLevel = fullScan.IsEnabled && !fullScan.IsEnabledMsMs ? 1 : 0; // If we don't want MS2, ask reader to totally skip it (not guaranteed)
 //                        var precursorIonMobility = GetPrecursorMzAndIonMobilityWindows(fullScan, dataFilePath); // A list of [mz, (optionally) IM window] values for pre-filtering by pwiz (not guaranteed)
-                        inFile = MSDataFilePath.OpenMsDataFile(enableSimSpectrum, preferOnlyMsLevel, true, true); // Combine ion mobility specra, omit zero intensity points
+                        inFile = MSDataFilePath.OpenMsDataFile(enableSimSpectrum, preferOnlyMsLevel, combineIonMobilitySpectra??true, true); // Omit zero intensity points
                         // Preserve centroiding info as part of MsDataFileUri string in chromdata only if it will be used
                         // CONSIDER: Dangerously high knowledge of future control flow required for making this decision
                         if (!ChromatogramDataProvider.HasChromatogramData(inFile) && !inFile.HasSrmSpectra)
-                            MSDataFilePath = dataFilePath = MSDataFilePath.ChangeCentroiding(centroidMS1, centroidMS2);
+                            MSDataFilePath = MSDataFilePath.ChangeCentroiding(centroidMS1, centroidMS2);
+                        // For future backward compatibility, we need to note whether or not combinedIMS was actually performed
+                        MSDataFilePath = MSDataFilePath.ChangeCombineIonMobilitySpectra(inFile.HasCombinedIonMobilitySpectra ? true : inFile.HasIonMobilitySpectra ? false : (bool?)null);
+                        dataFilePath = MSDataFilePath;
                     }
 
                     // Check for cancellation
@@ -212,7 +216,7 @@ namespace pwiz.Skyline.Model.Results
                         if (null == inFile)
                         {
                             _currentFileInfo = new FileBuildInfo(fileInfo.RunStartTime,
-                                fileInfo.FileWriteTime ?? DateTime.Now, new MsInstrumentConfigInfo[0], null, false, null, null);
+                                fileInfo.FileWriteTime ?? DateTime.Now, new MsInstrumentConfigInfo[0], null, false, null, null, null);
                         }
                         else
                         {
@@ -360,13 +364,14 @@ namespace pwiz.Skyline.Model.Results
                                      cachedFile.InstrumentInfoList,
                                      cachedFile.IsSingleMatchMz,
                                      cachedFile.HasMidasSpectra,
+                                     cachedFile.HasCombinedIonMobilitySpectra ? true : cachedFile.IonMobilityUnits != eIonMobilityUnits.none ? false : (bool?)null,
                                      cachedFile.SampleId,
                                      cachedFile.InstrumentSerialNumber);
         }
 
-        private MsDataFileImpl GetMsDataFile(string dataFilePathPart, int sampleIndex, LockMassParameters lockMassParameters, MsInstrumentConfigInfo msInstrumentConfigInfo, bool enableSimSpectrum, bool requireCentroidedMS1, bool requireCentroidedMS2, int preferOnlyMsLevel)
+        private MsDataFileImpl GetMsDataFile(string dataFilePathPart, bool? combineIonMobilitySpectra, int sampleIndex, LockMassParameters lockMassParameters, MsInstrumentConfigInfo msInstrumentConfigInfo, bool enableSimSpectrum, bool requireCentroidedMS1, bool requireCentroidedMS2, int preferOnlyMsLevel)
         {
-            return new MsDataFileImpl(dataFilePathPart, sampleIndex, lockMassParameters, enableSimSpectrum,
+            return new MsDataFileImpl(dataFilePathPart, combineIonMobilitySpectra, sampleIndex, lockMassParameters, enableSimSpectrum,
                 requireVendorCentroidedMS1:requireCentroidedMS1, requireVendorCentroidedMS2:requireCentroidedMS2,
                 ignoreZeroIntensityPoints:true, preferOnlyMsLevel:preferOnlyMsLevel);
         }
@@ -490,6 +495,7 @@ namespace pwiz.Skyline.Model.Results
                                      _currentFileInfo.LocationScanIds,
                                      (float?) provider.TicArea,
                                      provider.IonMobilityUnits,
+                                     provider.HasCombinedIonMobilitySpectra,
                                      _currentFileInfo.SampleId,
                                      _currentFileInfo.SerialNumber,
                                      _currentFileInfo.InstrumentInfoList));
@@ -1441,7 +1447,9 @@ namespace pwiz.Skyline.Model.Results
         public static FileBuildInfo GetFileBuildInfo(MsDataFileUri msDataFileUri, MsDataFileImpl file)
         {
             return new FileBuildInfo(file.RunStartTime, msDataFileUri.GetFileLastWriteTime(),
-                file.GetInstrumentConfigInfoList(), null, false, file.GetSampleId(), file.GetInstrumentSerialNumber());
+                file.GetInstrumentConfigInfoList(), null, false,
+                file.HasCombinedIonMobilitySpectra ? true : file.HasIonMobilitySpectra ? false : (bool?)null,
+                file.GetSampleId(), file.GetInstrumentSerialNumber());
         }
 
         public FileBuildInfo(DateTime? startTime,
@@ -1449,6 +1457,7 @@ namespace pwiz.Skyline.Model.Results
             IEnumerable<MsInstrumentConfigInfo> instrumentInfoList,
             bool? isSingleMatchMz,
             bool hasMidasSpectra,
+            bool? combinedIonMobility,
             string sampleId,
             string serialNumber)
         {
@@ -1458,6 +1467,7 @@ namespace pwiz.Skyline.Model.Results
             IsSingleMatchMz = isSingleMatchMz;
             SampleId = sampleId;
             SerialNumber = serialNumber;
+            CombinedIonMobility = combinedIonMobility;
         }
 
         public DateTime? StartTime { get; private set; }
@@ -1466,6 +1476,7 @@ namespace pwiz.Skyline.Model.Results
         public ChromCachedFile.FlagValues Flags { get; private set; }
         public string SampleId { get; private set; }
         public string SerialNumber { get; private set; }
+        public bool? CombinedIonMobility { get; private set; } // True, False, N/A (no ion mobility)
 
         public bool? IsSingleMatchMz
         {

@@ -768,6 +768,7 @@ namespace pwiz.Skyline.Model.Results
                                                              cachedFileStruct.locationScanIds,
                                                              cachedFileStruct.ticArea == 0 ? (float?) null : cachedFileStruct.ticArea,
                                                              ChromCachedFile.IonMobilityUnitsFromFlags(cachedFileStruct.flags),
+                                                             filePath.GetCombineIonMobilitySpectra() ?? false,
                                                              sampleId,
                                                              serialNumber,
                                                              instrumentInfoList);
@@ -985,7 +986,9 @@ namespace pwiz.Skyline.Model.Results
             var cachedFileSerializer = cacheFormat.CachedFileSerializer();
             foreach (var cachedFile in chromCachedFiles)
             {
-                var filePathBytes = Encoding.UTF8.GetBytes(cachedFile.FilePath.ToString());
+                bool? combineIonMobilitySpectra =
+                    cachedFile.HasCombinedIonMobilitySpectra ? true : cachedFile.IonMobilityUnits != eIonMobilityUnits.none ? false : (bool?) null;
+                var filePathBytes = Encoding.UTF8.GetBytes(cachedFile.FilePath.ChangeCombineIonMobilitySpectra(combineIonMobilitySpectra).ToString());
                 var instrumentInfoBytes =
                     Encoding.UTF8.GetBytes(InstrumentInfoUtil.GetInstrumentInfoString(cachedFile.InstrumentInfoList));
                 var sampleIdBytes = Encoding.UTF8.GetBytes(cachedFile.SampleId ?? string.Empty);

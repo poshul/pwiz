@@ -43,6 +43,7 @@ namespace pwiz.Skyline.Model.Results
 
         private readonly bool _sourceHasPositivePolarityData;
         private readonly bool _sourceHasNegativePolarityData;
+        private readonly bool _sourceHasCombinedIonMobilitySpectra;
 
         /// <summary>
         /// The number of chromatograms read so far.
@@ -67,6 +68,7 @@ namespace pwiz.Skyline.Model.Results
             _cache = ChromatogramCache.Load(cache.CachePath, new ProgressStatus(), loader, assumeNegativeChargesInPreV11Caches);
 
             _fileIndex = cache.CachedFiles.IndexOf(f => Equals(f.FilePath, dataFilePath));
+            _sourceHasCombinedIonMobilitySpectra = dataFilePath.GetCombineIonMobilitySpectra() ?? false;
             _chromKeyIndices = cache.GetChromKeys(dataFilePath).OrderBy(v => v.LocationPoints).ToArray();
             foreach (var c in _chromKeyIndices.Where(i => i.Key.Precursor != 0))
             {
@@ -94,6 +96,8 @@ namespace pwiz.Skyline.Model.Results
         }
 
         public override eIonMobilityUnits IonMobilityUnits { get { return _cache != null ? _cache.CachedFiles[_fileIndex].IonMobilityUnits : eIonMobilityUnits.none; } }
+
+        public override bool HasCombinedIonMobilitySpectra => _sourceHasCombinedIonMobilitySpectra;
 
         public override bool GetChromatogram(int id, Target modifiedSequence, Color peptideColor, out ChromExtra extra, out TimeIntensities timeIntensities)
         {

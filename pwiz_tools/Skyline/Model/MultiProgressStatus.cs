@@ -143,7 +143,7 @@ namespace pwiz.Skyline.Model
             bool added = false;
             foreach (var loadingStatus in ProgressList)
             {
-                if (loadingStatus.FilePath.Equals(status.FilePath))
+                if (loadingStatus.FilePath.ToFileId().Equals(status.FilePath.ToFileId())) // Compare ignoring centroiding and combineIMS flags which may update after file is opened and inspected
                 {
                     uniqueList.Add(status);
                     added = true;
