@@ -31,7 +31,7 @@ namespace pwiz.Skyline.Model.Results
         public abstract string GetFileName();
         public abstract string GetFileNameWithoutExtension();
         public abstract override string ToString(); // Gets the file path with the sample index and centroiding and combineIMS info
-        public abstract string ToFileId(); // Gets the file path and any sample index info, but no centroiding or combineIMS info
+        public abstract MsDataFileId ToFileId(); // Gets the file path and any sample index info, but no centroiding or combineIMS info
         public abstract DateTime GetFileLastWriteTime();
         public abstract string GetSampleName();
         public abstract int GetSampleIndex();
@@ -231,9 +231,9 @@ namespace pwiz.Skyline.Model.Results
             return SampleHelp.EncodePath(FilePath, SampleName, SampleIndex, LockMassParameters, CentroidMs1, CentroidMs2, CombineIonMobilitySpectra);
         }
 
-        public override string ToFileId()
+        public override MsDataFileId ToFileId()
         {
-            return FileId;
+            return new MsDataFileId(FileId);
         }
 
         public override DateTime GetFileLastWriteTime()

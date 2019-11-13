@@ -41,18 +41,24 @@ namespace pwiz.Skyline.Model.Results
             base(SampleHelp.GetFileName(filePath))
         {
             Transitions = new TransitionData();
-            FilePath = filePath;
+            DecoratedFilePath = filePath;
+            FilePath = DecoratedFilePath.ToFileId();
             ReplicateNames = replicateNames;
         }
 
         public TransitionData Transitions { get; private set; }
-        public MsDataFileUri FilePath { get; private set; }
+        public MsDataFileId FilePath { get; private set; }
+        public MsDataFileUri DecoratedFilePath { get; private set; }
         public bool Importing { get; private set; }
         public IEnumerable<string> ReplicateNames { get; private set; }
 
         public ChromatogramLoadingStatus ChangeFilePath(MsDataFileUri filePath)
         {
-            return ChangeProp(ImClone(this), s => s.FilePath = filePath);
+            return ChangeProp(ImClone(this), s =>
+            {
+                s.DecoratedFilePath = filePath;
+                s.FilePath = filePath.ToFileId();
+            });
         }
 
         public ChromatogramLoadingStatus ChangeImporting(bool importing)

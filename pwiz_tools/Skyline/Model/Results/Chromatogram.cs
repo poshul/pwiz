@@ -103,9 +103,9 @@ namespace pwiz.Skyline.Model.Results
                 UpdateProgress(_multiFileLoader.CancelStatus());
         }
 
-        public void RemoveFile(MsDataFileUri filePath)
+        public void RemoveFile(MsDataFileId dataFileKey)
         {
-            _multiFileLoader.ClearFile(filePath);
+            _multiFileLoader.ClearFile(dataFileKey);
         }
 
         public override bool AnyProcessing()
@@ -499,7 +499,7 @@ namespace pwiz.Skyline.Model.Results
             return set;
         }
 
-        public ChromatogramSet ChangeFileCacheFlags(IDictionary<MsDataFileUri, ChromCachedFile> cachedPaths,
+        public ChromatogramSet ChangeFileCacheFlags(IDictionary<MsDataFileId, ChromCachedFile> cachedPaths,
             HashSet<string> cachedFileNames, string cachePath)
         {
             var set = ImClone(this);
@@ -524,7 +524,7 @@ namespace pwiz.Skyline.Model.Results
         /// <param name="cachedPaths">Set of known cached paths</param>
         /// <param name="cachedFileNames">Set of known cached file names</param>
         /// <param name="cachePath">Final cache path</param>
-        private void CalcCachedFlags(IDictionary<MsDataFileUri, ChromCachedFile> cachedPaths,
+        private void CalcCachedFlags(IDictionary<MsDataFileId, ChromCachedFile> cachedPaths,
             ICollection<string> cachedFileNames, string cachePath)
         {
             ChromFileInfo[] fileInfos = new ChromFileInfo[FileCount];
@@ -535,14 +535,14 @@ namespace pwiz.Skyline.Model.Results
                 var path = fileInfos[i].FilePath;
 
                 ChromCachedFile fileInfo;
-                if (cachedPaths.TryGetValue(path, out fileInfo))
+                if (cachedPaths.TryGetValue(path.ToFileId(), out fileInfo))
                     fileInfos[i] = fileInfos[i].ChangeInfo(fileInfo);
                 else if (cachedFileNames == null || cachedFileNames.Contains(path.GetFileName()))
                 {
                     // If the name but not the file was found, check for an
                     // existing file in the cache file's directory.
                     var dataFilePath = GetExistingDataFilePath(cachePath, path);
-                    if (dataFilePath != null && cachedPaths.TryGetValue(dataFilePath, out fileInfo))
+                    if (dataFilePath != null && cachedPaths.TryGetValue(dataFilePath.ToFileId(), out fileInfo))
                         fileInfos[i] = fileInfos[i].ChangeInfo(fileInfo);
                 }
             }

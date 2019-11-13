@@ -42,13 +42,13 @@ namespace pwiz.Skyline.Controls.Graphs
         private int _selected = -1;
         private bool _selectionIsSticky;
         private readonly int _multiFileWindowWidth;
-        private readonly List<MsDataFileUri> _partialProgressList = new List<MsDataFileUri>();
+        private readonly List<MsDataFileId> _partialProgressList = new List<MsDataFileId>();
         private DateTime _retryTime;
         private int _nextRetry;
         private ImportResultsRetryCountdownDlg _retryDlg;
 
-        private Dictionary<string, FileProgressControl> _fileProgressControls =
-            new Dictionary<string, FileProgressControl>();
+        private Dictionary<MsDataFileId, FileProgressControl> _fileProgressControls =
+            new Dictionary<MsDataFileId, FileProgressControl>();
 
         private const int RETRY_INTERVAL = 10;
         private const int RETRY_COUNTDOWN = 30;
@@ -125,7 +125,7 @@ namespace pwiz.Skyline.Controls.Graphs
                                 _nextRetry = 0;
                             if (control.Error != null)
                             {
-                                ChromatogramManager.RemoveFile(control.FilePath);
+                                ChromatogramManager.RemoveFile(control.FilePath.ToFileId());
                                 Retry(control.Status);
                                 break;
                             }
@@ -199,7 +199,7 @@ namespace pwiz.Skyline.Controls.Graphs
             }
             else
             {
-                graphChromatograms.Key = SelectedControl.FilePath.GetFilePath();
+                graphChromatograms.Key = SelectedControl.FilePath.ToFileId();
                 ShowControl(graphChromatograms);
             }
         }
@@ -424,7 +424,7 @@ namespace pwiz.Skyline.Controls.Graphs
             graphChromatograms.Visible = ReferenceEquals(control, graphChromatograms);
         }
 
-        private ChromatogramLoadingStatus FindStatus(MultiProgressStatus status, MsDataFileUri filePath)
+        private ChromatogramLoadingStatus FindStatus(MultiProgressStatus status, MsDataFileId filePath)
         {
             foreach (ChromatogramLoadingStatus loadingStatus in status.ProgressList)
             {
@@ -447,8 +447,8 @@ namespace pwiz.Skyline.Controls.Graphs
             List<FileProgressControl> controlsToAdd = new List<FileProgressControl>();
             foreach (var loadingStatus in status.ProgressList)
             {
-                var filePath = loadingStatus.FilePath;
-                var progressControl = FindProgressControl(filePath);
+                var decoratedFilePath = loadingStatus.DecoratedFilePath;
+                var progressControl = FindProgressControl(decoratedFilePath.ToFileId());
                 if (progressControl != null)
                     continue;
 
@@ -459,9 +459,9 @@ namespace pwiz.Skyline.Controls.Graphs
                     Width = width,
                     Selected = first,
                     BackColor = SystemColors.Control,
-                    FilePath = filePath
+                    FilePath = decoratedFilePath
                 };
-                progressControl.SetToolTip(toolTip1, filePath.GetFilePath());
+                progressControl.SetToolTip(toolTip1, decoratedFilePath.GetFilePath());
                 int index = progressControl.Number - 1;
                 progressControl.ControlMouseDown += (sender, args) => { Selected = index; };
                 var thisLoadingStatus = loadingStatus;
@@ -482,15 +482,15 @@ namespace pwiz.Skyline.Controls.Graphs
 
         private void CancelMissingFiles(MultiProgressStatus status)
         {
-            HashSet<string> filesWithStatus = null;
+            HashSet<MsDataFileId> filesWithStatus = null;
             foreach (FileProgressControl progressControl in flowFileStatus.Controls)
             {
                 if (!progressControl.IsComplete && !progressControl.IsCanceled)
                 {
                     if (filesWithStatus == null)
                     {
-                        filesWithStatus = new HashSet<string>(status.ProgressList
-                            .Select(loadingStatus => loadingStatus.FilePath.ToFileId()));
+                        filesWithStatus = new HashSet<MsDataFileId>(status.ProgressList
+                            .Select(loadingStatus => loadingStatus.FilePath));
                     }
                     if (!filesWithStatus.Contains(progressControl.FilePath.ToFileId()))
                         progressControl.IsCanceled = true;
@@ -505,6 +505,13 @@ namespace pwiz.Skyline.Controls.Graphs
             return fileProgressControl;
         }
 
+        private FileProgressControl FindProgressControl(MsDataFileId fileKey)
+        {
+            FileProgressControl fileProgressControl;
+            _fileProgressControls.TryGetValue(fileKey, out fileProgressControl);
+            return fileProgressControl;
+        }
+
         private void Retry(ChromatogramLoadingStatus status)
         {
             ChromatogramManager.RemoveFile(status.FilePath);
@@ -514,7 +521,7 @@ namespace pwiz.Skyline.Controls.Graphs
             for (int i = 0; i < flowFileStatus.Controls.Count; i++)
             {
                 var control = (FileProgressControl) flowFileStatus.Controls[i];
-                if (control.FilePath.Equals(status.FilePath))
+                if (control.FilePath.ToFileId().Equals(status.FilePath))
                 {
                     control.Reset();
                     Selected = i;
@@ -529,7 +536,7 @@ namespace pwiz.Skyline.Controls.Graphs
                     {
                         var oldResults = doc.Settings.MeasuredResults ??
                                          new MeasuredResults(new ChromatogramSet[0]);
-                        var newResults = oldResults.AddDataFile(status.FilePath, status.ReplicateNames);
+                        var newResults = oldResults.AddDataFile(status.DecoratedFilePath, status.ReplicateNames);
                         return doc.ChangeMeasuredResults(newResults, monitor);
                     });
             });

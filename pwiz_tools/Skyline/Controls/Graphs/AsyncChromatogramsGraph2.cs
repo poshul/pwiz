@@ -59,8 +59,8 @@ namespace pwiz.Skyline.Controls.Graphs
         private GraphPane _graphPane;
         private BoxObj _canceledBox;
         private TextObj _canceledText;
-        private readonly Dictionary<string, GraphInfo> _graphs = new Dictionary<string, GraphInfo>();
-        private string _key;
+        private readonly Dictionary<MsDataFileId, GraphInfo> _graphs = new Dictionary<MsDataFileId, GraphInfo>();
+        private MsDataFileId _key;
         private bool _scaleIsLocked;
         private readonly Animation _xAxisAnimation = new Animation(ANIMATE_UPDATERATE);
         private readonly Animation _yAxisAnimation = new Animation(ANIMATE_UPDATERATE);
@@ -146,7 +146,7 @@ namespace pwiz.Skyline.Controls.Graphs
             }
 
             // Create info for new file.
-            var key = status.FilePath.GetFilePath();
+            var key = status.FilePath;
             var info = GetInfo(key);
             if (info == null)
             {
@@ -155,7 +155,7 @@ namespace pwiz.Skyline.Controls.Graphs
                     GraphPane = _templatePane.Clone(),
                     ActiveCurves = new List<CurveInfo>()
                 };
-                info.GraphPane.Title.Text = status.FilePath.GetFileNameWithoutExtension();
+                info.GraphPane.Title.Text = status.DecoratedFilePath.GetFileNameWithoutExtension();
             }
 
             // Create curve information from the transition data.
@@ -291,12 +291,12 @@ namespace pwiz.Skyline.Controls.Graphs
             }
         }
 
-        public string Key 
+        public MsDataFileId Key 
         {
             get { return _key; }
             set 
             {
-                if (_key != value)
+                if (!Equals(_key, value))
                 {
                     _key = value;
                     Redraw();
@@ -338,7 +338,7 @@ namespace pwiz.Skyline.Controls.Graphs
             }
         }
 
-        private GraphInfo GetInfo(string key)
+        private GraphInfo GetInfo(MsDataFileId key)
         {
             return key != null && _graphs.ContainsKey(key) ? _graphs[key] : null;
         }
@@ -385,9 +385,9 @@ namespace pwiz.Skyline.Controls.Graphs
             }
         }
 
-        public void ClearGraph(MsDataFileUri filePath)
+        public void ClearGraph(MsDataFileId filePath)
         {
-            _graphs.Remove(filePath.GetFilePath());
+            _graphs.Remove(filePath);
         }
 
         private void ProcessBinProgressive(

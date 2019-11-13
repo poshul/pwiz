@@ -183,9 +183,9 @@ namespace pwiz.Skyline.Model.Results.RemoteApi
             return AccountType.Name + @":" + GetParameters();
         }
 
-        public override string ToFileId()
+        public override MsDataFileId ToFileId()
         {
-            return GetFilePath();
+            return new MsDataFileId(GetFilePath());
         }
 
         public override int GetSampleIndex()
@@ -267,9 +267,9 @@ namespace pwiz.Skyline.Model.Results.RemoteApi
                 return string.Empty;
             }
 
-            public override string ToFileId()
+            public override MsDataFileId ToFileId()
             {
-                return string.Empty;
+                return new MsDataFileId(string.Empty);
             }
 
 

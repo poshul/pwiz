@@ -448,7 +448,7 @@ namespace pwiz.Skyline.Model.Results
 
             string cachePath = ChromatogramCache.FinalPathForName(documentPath, null);
             var cachedFiles = results.CachedFileInfos.Distinct(new PathComparer<ChromCachedFile>()).ToArray();
-            var dictCachedFiles = cachedFiles.ToDictionary(cachedFile => cachedFile.FilePath);
+            var dictCachedFiles = cachedFiles.ToDictionary(cachedFile => cachedFile.FilePath.ToFileId());
             var enumCachedNames = cachedFiles.Select(cachedFile => cachedFile.FilePath.GetFileName());
             var setCachedFileNames = new HashSet<string>(enumCachedNames);
             var chromatogramSets = new List<ChromatogramSet>();

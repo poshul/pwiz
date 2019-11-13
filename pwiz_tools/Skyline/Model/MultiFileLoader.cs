@@ -33,7 +33,7 @@ namespace pwiz.Skyline.Model
         public const int MAX_PARALLEL_LOAD_FILES = 12;
 
         private readonly QueueWorker<LoadInfo> _worker;
-        private readonly Dictionary<string, int> _loadingPaths;
+        private readonly Dictionary<MsDataFileId, int> _loadingPaths;
         private readonly bool _synchronousMode;
         private int? _threadCountPreferred;
         private ImportResultsSimultaneousFileOptions _simultaneousFileOptions;
@@ -44,7 +44,7 @@ namespace pwiz.Skyline.Model
         public MultiFileLoader(bool synchronousMode)
         {
             _worker = new QueueWorker<LoadInfo>(null, LoadFile);
-            _loadingPaths = new Dictionary<string, int>();
+            _loadingPaths = new Dictionary<MsDataFileId, int>();
             _synchronousMode = synchronousMode;
             _statusLock = new object();
             ResetStatus();
@@ -214,11 +214,11 @@ namespace pwiz.Skyline.Model
             _worker.DoneAdding(true);
         }
 
-        public void ClearFile(MsDataFileUri filePath)
+        public void ClearFile(MsDataFileId fileKey)
         {
             lock (this)
             {
-                _loadingPaths.Remove(filePath.ToFileId());
+                _loadingPaths.Remove(fileKey);
                 if (_loadingPaths.Count == 0)
                     ResetStatus();
             }
