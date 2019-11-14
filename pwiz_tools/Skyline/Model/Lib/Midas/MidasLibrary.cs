@@ -356,7 +356,7 @@ namespace pwiz.Skyline.Model.Lib.Midas
 
         public IEnumerable<DbSpectrum> GetSpectraByPrecursor(MsDataFileUri file, double precursor)
         {
-            return GetSpectraByFile(file.GetMsDataFileId()).Where(spectrum =>
+            return GetSpectraByFile(file?.GetMsDataFileId()).Where(spectrum =>
                 spectrum.HasPrecursorMatch && Math.Abs(spectrum.MatchedPrecursorMz.GetValueOrDefault() - precursor) <= PRECURSOR_TOLERANCE);
         }
 
@@ -370,7 +370,7 @@ namespace pwiz.Skyline.Model.Lib.Midas
 
         public IEnumerable<DbSpectrum> GetSpectraByPeptide(MsDataFileUri file, LibKey libKey)
         {
-            foreach (var spectrum in GetSpectraByFile(file.GetMsDataFileId()))
+            foreach (var spectrum in GetSpectraByFile(file?.GetMsDataFileId()))
             {
                 if (string.IsNullOrWhiteSpace(spectrum.DocumentPeptide))
                 {
