@@ -63,6 +63,7 @@ namespace TestPerf // Note: tests in the "TestPerf" namespace only run when the 
                 SkylineWindow.SaveDocument(TestFilesDir.GetTestPath("local.sky")); // Avoid "document changed since last edit" message
                 document = SkylineWindow.DocumentUI;
             });
+//PauseTest();
             var transitions = document.MoleculeTransitions.ToArray();
 
             // Verify ability to extract predictions from raw data
@@ -79,7 +80,7 @@ namespace TestPerf // Note: tests in the "TestPerf" namespace only run when the 
                 driftTimePredictorDlg.GetDriftTimesFromResults();
 //                driftTimePredictorDlg.OkDialog(true); // Force overwrite if a named predictor already exists
             });
-PauseTest();
+//PauseTest();
 RunUI(() =>
 {
     driftTimePredictorDlg.OkDialog(true); // Force overwrite if a named predictor already exists
@@ -128,7 +129,7 @@ RunUI(() =>
             var mz5 = TestFilesDir.GetTestPath(bsaFmolTimsInfusionesiPrecMz5Mz5);
             ImportResultsFile(mz5);
             document = WaitForDocumentChange(document);
-PauseTest(); // uncomment this to play with raw data display 
+//PauseTest(); // uncomment this to play with raw data display 
             foreach (var nodeGroup in document.MoleculeTransitionGroups)
             {
                 Assume.AreEqual(2, nodeGroup.Results.Count);

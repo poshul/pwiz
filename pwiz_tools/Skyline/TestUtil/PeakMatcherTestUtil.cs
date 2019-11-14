@@ -51,7 +51,7 @@ namespace pwiz.SkylineTestUtil
                 ChromatogramSet chromSet = chromatogram;
                 skylineWindow.SelectedResultsIndex = chromatograms.IndexOf(chromSet);
                 skylineWindow.ModifyDocument("change peak", document =>
-                    document.ChangePeak(identityPath, chromSet.Name, chromSet.MSDataFilePaths.First(), null, rt, UserSet.TRUE));
+                    document.ChangePeak(identityPath, chromSet.Name, chromSet.MSDataFileUris.First(), null, rt, UserSet.TRUE));
                 break;
             }
             if (!found)

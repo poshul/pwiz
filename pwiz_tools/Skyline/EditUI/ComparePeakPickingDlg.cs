@@ -389,18 +389,18 @@ namespace pwiz.Skyline.EditUI
 
         private class SelectionInfo
         {
-            public SelectionInfo(int targetIndex, Target sequence, Adduct charge, MsDataFileUri filePath)
+            public SelectionInfo(int targetIndex, Target sequence, Adduct charge, MsDataFileUri fileUri)
             {
                 TargetIndex = targetIndex;
                 Sequence = sequence;
                 Charge = charge;
-                FilePath = filePath;
+                FileUri = fileUri;
             }
 
             public int TargetIndex { get; private set; }
             public Target Sequence { get; private set; }
             public Adduct Charge { get; private set; }
-            public MsDataFileUri FilePath {get; private set; }
+            public MsDataFileUri FileUri {get; private set; }
         }
 
         private void ClickGridViewItem(int colIndex, SelectionInfo selInfo)
@@ -409,7 +409,7 @@ namespace pwiz.Skyline.EditUI
                 return;
 
             var nodeGlobalIndex = selInfo.TargetIndex;
-            var filePath = selInfo.FilePath;
+            var filePath = selInfo.FileUri;
             var skylineWindow = Program.MainWindow;
             var document = skylineWindow.DocumentUI;
             if (colIndex > 0)
@@ -424,7 +424,7 @@ namespace pwiz.Skyline.EditUI
                 }
                 skylineWindow.SelectedPath = document.GetPathTo((int)SrmDocument.Level.TransitionGroups, groupIndex);
             }
-            var resultMatch = document.Settings.MeasuredResults.FindMatchingMSDataFile(filePath);
+            var resultMatch = document.Settings.MeasuredResults.FindMatchingMSDataFile(filePath.GetMsDataFileId());
             if (resultMatch != null)
                 skylineWindow.SelectedResultsIndex = resultMatch.FileOrder;
         }

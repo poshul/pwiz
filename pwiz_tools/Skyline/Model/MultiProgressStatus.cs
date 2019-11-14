@@ -261,7 +261,7 @@ namespace pwiz.Skyline.Model
         {
             foreach (var loadingStatus in ProgressList)
             {
-                if (loadingStatus.FilePath.Equals(filePath))
+                if (loadingStatus.FilePath.Equals(filePath.GetMsDataFileId()))
                     return loadingStatus;
             }
             return null;

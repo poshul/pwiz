@@ -347,7 +347,7 @@ namespace pwiz.Skyline.Model.Lib.Midas
             return true;
         }
 
-        public IEnumerable<DbSpectrum> GetSpectraByFile(MsDataFileUri file)
+        public IEnumerable<DbSpectrum> GetSpectraByFile(MsDataFileId file)
         {
             return IsLoaded
                 ? _spectra.Where(kvp => file == null || Equals(kvp.Key.FileName, file.GetFileName())).SelectMany(kvp => kvp.Value)
@@ -356,7 +356,7 @@ namespace pwiz.Skyline.Model.Lib.Midas
 
         public IEnumerable<DbSpectrum> GetSpectraByPrecursor(MsDataFileUri file, double precursor)
         {
-            return GetSpectraByFile(file).Where(spectrum =>
+            return GetSpectraByFile(file.GetMsDataFileId()).Where(spectrum =>
                 spectrum.HasPrecursorMatch && Math.Abs(spectrum.MatchedPrecursorMz.GetValueOrDefault() - precursor) <= PRECURSOR_TOLERANCE);
         }
 
@@ -370,7 +370,7 @@ namespace pwiz.Skyline.Model.Lib.Midas
 
         public IEnumerable<DbSpectrum> GetSpectraByPeptide(MsDataFileUri file, LibKey libKey)
         {
-            foreach (var spectrum in GetSpectraByFile(file))
+            foreach (var spectrum in GetSpectraByFile(file.GetMsDataFileId()))
             {
                 if (string.IsNullOrWhiteSpace(spectrum.DocumentPeptide))
                 {
@@ -628,13 +628,13 @@ namespace pwiz.Skyline.Model.Lib.Midas
             }
         }
 
-        public static void AddSpectra(MidasLibSpec libSpec, MsDataFilePath[] resultsFiles, SrmDocument doc, ILoadMonitor monitor, out List<MsDataFilePath> failedFiles)
+        public static void AddSpectra(MidasLibSpec libSpec, MsDataFileLocalUri[] resultsFiles, SrmDocument doc, ILoadMonitor monitor, out List<MsDataFileLocalUri> failedFiles)
         {
             // Get spectra from results files
             var newSpectra = new List<DbSpectrum>();
             var progress = new ProgressStatus(string.Empty).ChangeMessage(Resources.MidasLibrary_AddSpectra_Reading_MIDAS_spectra);
             const int percentResultsFiles = 80;
-            failedFiles = new List<MsDataFilePath>();
+            failedFiles = new List<MsDataFileLocalUri>();
             for (var i = 0; i < resultsFiles.Length; i++)
             {
                 var resultsFile = resultsFiles[i];

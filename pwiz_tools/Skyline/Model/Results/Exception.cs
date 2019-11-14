@@ -27,7 +27,7 @@ namespace pwiz.Skyline.Model.Results
 {
     internal class NoSrmDataException : MissingDataException
     {
-        public NoSrmDataException(MsDataFileUri importPath)
+        public NoSrmDataException(MsDataFileId importPath)
             : base(Resources.NoSrmDataException_NoSrmDataException_No_SRM_MRM_data_found_in__0__, importPath)
         {
         }
@@ -35,7 +35,7 @@ namespace pwiz.Skyline.Model.Results
 
     internal class NoFullScanDataException : MissingDataException
     {
-        public NoFullScanDataException(MsDataFileUri importPath)
+        public NoFullScanDataException(MsDataFileId importPath)
             : base(Resources.NoFullScanDataException_NoFullScanDataException_No_scans_in__0__match_the_current_filter_settings_, importPath)
         {
         }
@@ -43,7 +43,7 @@ namespace pwiz.Skyline.Model.Results
 
     internal class NoFullScanFilteringException : MissingDataException
     {
-        public NoFullScanFilteringException(MsDataFileUri importPath)
+        public NoFullScanFilteringException(MsDataFileId importPath)
             : base(Resources.NoFullScanFilteringException_NoFullScanFilteringException_The_file__0__does_not_contain_SRM_MRM_chromatograms__To_extract_chromatograms_from_its_spectra__go_to_Settings___Transition_Settings___Full_Scan_and_choose_options_appropriate_to_the_acquisition_method_used_, importPath)
         {
         }
@@ -51,7 +51,7 @@ namespace pwiz.Skyline.Model.Results
 
     internal class NoCentroidedDataException : MissingDataException
     {
-        public NoCentroidedDataException(MsDataFileUri importPath, Exception innerException)
+        public NoCentroidedDataException(MsDataFileId importPath, Exception innerException)
             : base(Resources.NoCentroidedDataException_NoCentroidedDataException_No_centroided_data_available_for_file___0_____Adjust_your_Full_Scan_settings_, importPath, innerException)
         {
         }
@@ -59,13 +59,13 @@ namespace pwiz.Skyline.Model.Results
 
     internal class MissingDataException : DataFileException
     {
-        public MissingDataException(string messageFormat, MsDataFileUri importPath)
+        public MissingDataException(string messageFormat, MsDataFileId importPath)
             : base(string.Format(messageFormat, importPath), importPath)
         {
             MessageFormat = messageFormat;
         }
 
-        public MissingDataException(string messageFormat, MsDataFileUri importPath, Exception innerException)
+        public MissingDataException(string messageFormat, MsDataFileId importPath, Exception innerException)
             : base(string.Format(messageFormat, importPath.GetFilePath()), importPath, innerException)
         {
             MessageFormat = messageFormat;
@@ -87,7 +87,7 @@ namespace pwiz.Skyline.Model.Results
 
     internal class ChromCacheBuildException : DataFileException
     {
-        private static string GetMessage(MsDataFileUri importPath, Exception x)
+        private static string GetMessage(MsDataFileId importPath, Exception x)
         {
             string message = importPath.GetSampleName() == null
                 ? string.Format(Resources.ChromCacheBuildException_GetMessage_Failed_importing_results_file___0___, importPath.GetFilePath())
@@ -96,7 +96,7 @@ namespace pwiz.Skyline.Model.Results
             return TextUtil.LineSeparate(message, x.Message);
         }
 
-        public ChromCacheBuildException(MsDataFileUri importPath, Exception innerException)
+        public ChromCacheBuildException(MsDataFileId importPath, Exception innerException)
             : base(GetMessage(importPath, innerException), importPath, innerException)
         {
         }
@@ -104,16 +104,16 @@ namespace pwiz.Skyline.Model.Results
 
     internal class DataFileException : IOException
     {
-        public DataFileException(string message, MsDataFileUri importPath) : base(message)
+        public DataFileException(string message, MsDataFileId importPath) : base(message)
         {
             ImportPath = importPath;
         }
 
-        public DataFileException(string message, MsDataFileUri importPath, Exception innerException) : base(message, innerException)
+        public DataFileException(string message, MsDataFileId importPath, Exception innerException) : base(message, innerException)
         {
             ImportPath = importPath;
         }
 
-        public MsDataFileUri ImportPath { get; private set; }
+        public MsDataFileId ImportPath { get; private set; }
     }
 }

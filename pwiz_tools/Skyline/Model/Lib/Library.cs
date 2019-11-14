@@ -136,7 +136,7 @@ namespace pwiz.Skyline.Model.Lib
                 var midasLibSpec = libraries.MidasLibrarySpecs.FirstOrDefault(libSpec => Equals(libSpec.FilePath, midasLibPath));
                 var newMidasLibSpec = missingMidasFiles.Any() && midasLibSpec == null;
                 MidasLibrary midasLibrary = null;
-                var failedMidasFiles = new List<MsDataFilePath>();
+                var failedMidasFiles = new List<MsDataFileLocalUri>();
                 if (missingMidasFiles.Any())
                 {
                     if (midasLibSpec == null)
@@ -144,7 +144,7 @@ namespace pwiz.Skyline.Model.Lib
                         // Need to add MIDAS LibSpec to document
                         midasLibSpec = (MidasLibSpec)LibrarySpec.CreateFromPath(MidasLibSpec.GetName(container.DocumentFilePath, libraries.LibrarySpecs), midasLibPath);
                     }
-                    MidasLibrary.AddSpectra(midasLibSpec, missingMidasFiles.Select(f => new MsDataFilePath(f)).ToArray(), docCurrent, new LoadMonitor(this, container, null), out failedMidasFiles);
+                    MidasLibrary.AddSpectra(midasLibSpec, missingMidasFiles.Select(f => new MsDataFileLocalUri(f)).ToArray(), docCurrent, new LoadMonitor(this, container, null), out failedMidasFiles);
                     if (failedMidasFiles.Count < missingMidasFiles.Length)
                     {
                         if (!newMidasLibSpec)
@@ -1152,7 +1152,7 @@ namespace pwiz.Skyline.Model.Lib
         }
 
         // ReSharper disable PossibleMultipleEnumeration
-        protected int FindFileInList(MsDataFileUri sourceFile, IEnumerable<string> fileNames)
+        protected int FindFileInList(MsDataFileId sourceFile, IEnumerable<string> fileNames)
         {
             if (fileNames == null)
             {

@@ -493,7 +493,7 @@ namespace pwiz.Skyline.Model.Results.Scoring
                                                         out arrayChromInfo))
                 {
                     _chromGroupInfo = arrayChromInfo.FirstOrDefault(ci =>
-                        Equals(ci.FilePath, chromGroupInfoPrimary.FilePath));
+                        Equals(ci.FileId, chromGroupInfoPrimary.FileId));
 
                     if (_chromGroupInfo != null)
                     {
@@ -643,7 +643,7 @@ namespace pwiz.Skyline.Model.Results.Scoring
             NodePepGroup = nodePepGroup;
             LabelType = labelType;
             ChromatogramSet = chromatogramSet;
-            FilePath = chromGroupInfo.FilePath;
+            FileUri = chromGroupInfo.FileUri;
             FileId = chromatogramSet.FindFile(chromGroupInfo);
             Run = runEnumDict[FileId.GlobalIndex];
 
@@ -659,7 +659,7 @@ namespace pwiz.Skyline.Model.Results.Scoring
         public IsotopeLabelType LabelType { get; private set; }
         public ChromatogramSet ChromatogramSet { get; private set; }
         public ChromFileInfoId FileId { get; private set; }
-        public MsDataFileUri FilePath { get; private set; }
+        public MsDataFileUri FileUri { get; private set; }
         public int Run { get; private set; }
 
         public string RawTextId { get; private set; }

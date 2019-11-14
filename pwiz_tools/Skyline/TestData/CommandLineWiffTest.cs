@@ -61,8 +61,8 @@ namespace pwiz.SkylineTestData
                 {
                     var chromatogramSet = doc.Settings.MeasuredResults.Chromatograms[i];
                     Assert.AreEqual(SAMPLE_NAMES[i], chromatogramSet.Name);
-                    Assert.AreEqual(1, chromatogramSet.MSDataFilePaths.Count());
-                    var msDataFilePath = chromatogramSet.MSDataFilePaths.First() as MsDataFilePath;
+                    Assert.AreEqual(1, chromatogramSet.MSDataFileUris.Count());
+                    var msDataFilePath = chromatogramSet.MSDataFileUris.First() as MsDataFileLocalUri;
                     Assert.IsNotNull(msDataFilePath);
                     Assert.AreEqual(i, msDataFilePath.SampleIndex);
                     Assert.AreEqual(SAMPLE_NAMES[i], msDataFilePath.SampleName);
@@ -124,10 +124,10 @@ namespace pwiz.SkylineTestData
                 Assert.AreEqual(1, doc.Settings.MeasuredResults.Chromatograms.Count);
                 var chromatogramSet = doc.Settings.MeasuredResults.Chromatograms.First();
                 Assert.AreEqual(replicateName, chromatogramSet.Name);
-                Assert.AreEqual(SAMPLE_NAMES.Count, chromatogramSet.MSDataFilePaths.Count());
+                Assert.AreEqual(SAMPLE_NAMES.Count, chromatogramSet.MSDataFileUris.Count());
                 for (int i = 0; i < SAMPLE_NAMES.Count; i++)
                 {
-                    var msDataFilePath = chromatogramSet.MSDataFileInfos[i].FilePath as MsDataFilePath;
+                    var msDataFilePath = chromatogramSet.MSDataFileInfos[i].FileUri as MsDataFileLocalUri;
                     Assert.IsNotNull(msDataFilePath);
                     Assert.AreEqual(SAMPLE_NAMES[i], msDataFilePath.SampleName);
                     Assert.AreEqual(i, msDataFilePath.SampleIndex);
@@ -150,8 +150,8 @@ namespace pwiz.SkylineTestData
                     var replicateName = SAMPLE_NAMES[i] + (j > 1 ? j.ToString() : "");
                     Assert.AreEqual(replicateName, chromatogramSet.Name);
 
-                    Assert.AreEqual(1, chromatogramSet.MSDataFilePaths.Count());
-                    var msDataFilePath = chromatogramSet.MSDataFilePaths.First() as MsDataFilePath;
+                    Assert.AreEqual(1, chromatogramSet.MSDataFileUris.Count());
+                    var msDataFilePath = chromatogramSet.MSDataFileUris.First() as MsDataFileLocalUri;
                     Assert.IsNotNull(msDataFilePath);
                     Assert.AreEqual(i, msDataFilePath.SampleIndex);
                     Assert.AreEqual(SAMPLE_NAMES[i], msDataFilePath.SampleName);

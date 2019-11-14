@@ -110,7 +110,7 @@ namespace pwiz.Skyline.Model
                     }
                     foreach (var chromInfo in arrayChromSpecial)
                     {
-                        string fileName = chromInfo.FilePath.GetFileName();
+                        string fileName = chromInfo.FileId.GetFileName();
                         // Skip the files that have not been selected for export
                         if (!filesToExport.Contains(fileName))
                             continue;
@@ -169,7 +169,7 @@ namespace pwiz.Skyline.Model
             string peptideModifiedSequence = _settings.GetDisplayName(peptideNode);
             var precursorCharge = groupNode.TransitionGroup.PrecursorAdduct;
             string labelType = groupNode.TransitionGroup.LabelType.Name;
-            var filesInChrom = chromatograms.MSDataFilePaths.Select(path=>path.GetFileName()).ToList();
+            var filesInChrom = chromatograms.MSDataFileUris.Select(path=>path.GetFileName()).ToList();
             // Don't load the chromatogram group if none of its files are being exported
             if (!filesInChrom.Where(filesToExport.Contains).Any())
                 return;
@@ -188,7 +188,7 @@ namespace pwiz.Skyline.Model
             }
             foreach (var chromGroupInfo in arrayChromInfo)
             {
-                string fileName = chromGroupInfo.FilePath.GetFileName();
+                string fileName = chromGroupInfo.FileId.GetFileName();
                 // Skip the files that have not been selected for export
                 if (!filesToExport.Contains(fileName))
                     continue;

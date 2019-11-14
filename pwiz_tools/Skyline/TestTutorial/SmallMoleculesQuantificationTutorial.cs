@@ -366,7 +366,7 @@ namespace pwiz.SkylineTestTutorial
                     PauseForScreenShot<ImportResultsSamplesDlg>("Import Results form", 7);
                 }
                 var openDataSourceDialog1 = ShowDialog<OpenDataSourceDialog>(() => importResultsDlg1.NamedPathSets =
-                    importResultsDlg1.GetDataSourcePathsFile(null));
+                    importResultsDlg1.GetDataSourceUrisFile(null));
                 var firstPassMatches = new[]
                 {
                     "Blank", "Cal", "QC",
@@ -375,7 +375,7 @@ namespace pwiz.SkylineTestTutorial
                 };
                 RunUI(() =>
                 {
-                    openDataSourceDialog1.CurrentDirectory = new MsDataFilePath(GetTestPath());
+                    openDataSourceDialog1.CurrentDirectory = new MsDataFileLocalUri(GetTestPath());
                     openDataSourceDialog1.SelectAllFileType(ExtWatersRaw,
                             path => isFirstPass ? firstPassMatches.Any(path.Contains) : !firstPassMatches.Any(path.Contains));
                 });

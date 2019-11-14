@@ -171,10 +171,10 @@ namespace pwiz.Skyline.Model
                 foreach (var loadItem in loadList)
                 {
                     // Ignore a file that is already being loaded (or is queued for loading).
-                    if (_loadingPaths.ContainsKey(loadItem.DataFile.ToFileId()))
+                    if (_loadingPaths.ContainsKey(loadItem.DataFileUri.GetMsDataFileId()))
                         continue;
                     int idIndex = document.Id.GlobalIndex;
-                    _loadingPaths.Add(loadItem.DataFile.ToFileId(), idIndex);
+                    _loadingPaths.Add(loadItem.DataFileUri.GetMsDataFileId(), idIndex);
                     uniqueLoadList.Add(loadItem);
                 }
 
@@ -189,20 +189,20 @@ namespace pwiz.Skyline.Model
                 // Add new paths to queue.
                 foreach (var loadItem in uniqueLoadList)
                 {
-                    var loadingStatus = new ChromatogramLoadingStatus(loadItem.DataFile, loadItem.ReplicateList);
+                    var loadingStatus = new ChromatogramLoadingStatus(loadItem.DataFileUri, loadItem.ReplicateList);
 
                     ChangeStatus(s => s.Add(loadingStatus));
 
                     // Queue work item to load the file.
                     _worker.Add(new LoadInfo
                     {
-                        Path = loadItem.DataFile,
+                        Path = loadItem.DataFileUri,
                         PartPath = loadItem.PartPath,
                         Document = document,
                         DocumentFilePath = documentFilePath,
                         CacheRecalc = cacheRecalc,
                         Status = loadingStatus,
-                        LoadMonitor = new SingleFileLoadMonitor(loadMonitor, loadItem.DataFile),
+                        LoadMonitor = new SingleFileLoadMonitor(loadMonitor, loadItem.DataFileUri.GetMsDataFileId()),
                         Complete = accumulator.Complete
                     });
                 }
@@ -400,7 +400,7 @@ namespace pwiz.Skyline.Model
             return progressResult;
         }
 
-        public bool IsCanceledFile(MsDataFileUri filePath)
+        public bool IsCanceledFile(MsDataFileId filePath)
         {
             return IsCanceledItem(filePath);
         }
@@ -409,11 +409,11 @@ namespace pwiz.Skyline.Model
     public class SingleFileLoadMonitor : BackgroundLoader.LoadMonitor
     {
         private readonly MultiFileLoadMonitor _loadMonitor;
-        private readonly MsDataFileUri _dataFile;
+        private readonly MsDataFileId _dataFile;
         private DateTime _lastCancelCheck;
         private bool _isCanceled;
 
-        public SingleFileLoadMonitor(MultiFileLoadMonitor loadMonitor, MsDataFileUri dataFile)
+        public SingleFileLoadMonitor(MultiFileLoadMonitor loadMonitor, MsDataFileId dataFile)
         {
             _loadMonitor = loadMonitor;
             _dataFile = dataFile;

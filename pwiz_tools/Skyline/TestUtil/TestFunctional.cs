@@ -264,7 +264,7 @@ namespace pwiz.SkylineTestUtil
                     new ChangedPeakBoundsEventArgs(pathGroup,
                         null,
                         graphChrom.NameSet,
-                        graphChrom.ChromGroupInfos[0].FilePath,
+                        graphChrom.ChromGroupInfos[0].FileUri,
                         graphChrom.GraphItems.First().GetNearestDisplayTime(startDisplayTime),
                         graphChrom.GraphItems.First().GetNearestDisplayTime(endDisplayTime),
                         PeakIdentification.ALIGNED,
@@ -1650,7 +1650,7 @@ namespace pwiz.SkylineTestUtil
         {
             var docBefore = SkylineWindow.Document;
             var importResultsDlg = ShowDialog<ImportResultsDlg>(SkylineWindow.ImportResults);
-            RunDlg<OpenDataSourceDialog>(() => importResultsDlg.NamedPathSets = importResultsDlg.GetDataSourcePathsFile(null),
+            RunDlg<OpenDataSourceDialog>(() => importResultsDlg.NamedPathSets = importResultsDlg.GetDataSourceUrisFile(null),
                openDataSourceDialog =>
                {
                    openDataSourceDialog.SelectFile(fileName);
@@ -1739,10 +1739,10 @@ namespace pwiz.SkylineTestUtil
             var doc = SkylineWindow.Document;
             var importResultsDlg = ShowDialog<ImportResultsDlg>(SkylineWindow.ImportResults);
             var openDataSourceDialog = ShowDialog<OpenDataSourceDialog>(() =>
-                importResultsDlg.NamedPathSets = importResultsDlg.GetDataSourcePathsFile(null));
+                importResultsDlg.NamedPathSets = importResultsDlg.GetDataSourceUrisFile(null));
             RunUI(() =>
             {
-                openDataSourceDialog.CurrentDirectory = new MsDataFilePath(dirPath);
+                openDataSourceDialog.CurrentDirectory = new MsDataFileLocalUri(dirPath);
                 openDataSourceDialog.SelectAllFileType(ext, path => filter == null || path.Contains(filter));
                 openDataSourceDialog.Open();
             });

@@ -16,29 +16,119 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+using System.IO;
+using pwiz.Skyline.Model.Results.RemoteApi.Unifi;
+
 namespace pwiz.Skyline.Model.Results
 {
     public sealed class MsDataFileId
     {
-        private string _key;
-        public MsDataFileId(string key)
+
+        public static readonly MsDataFileId EMPTY = new MsDataFileId(string.Empty);
+        public MsDataFileId(string filePath)
+            : this(filePath, null, -1)
         {
-            _key = key;
         }
 
-        private bool Equals(MsDataFileId other)
+        public MsDataFileId(string filePath, string sampleName, int sampleIndex)
         {
-            return _key == other._key ;
+            FilePath = filePath;
+            SampleName = sampleName;
+            SampleIndex = sampleIndex;
+        }
+
+        public MsDataFileId(MsDataFileId msDataFileId)
+        {
+            FilePath = msDataFileId.FilePath;
+            SampleName = msDataFileId.SampleName;
+            SampleIndex = msDataFileId.SampleIndex;
+        }
+
+        public string FilePath { get; private set; }
+
+        public MsDataFileId SetFilePath(string filePath)
+        {
+            return new MsDataFileId(this) { FilePath = filePath };
+        }
+        public string SampleName { get; }
+        public int SampleIndex { get; }
+
+        public string GetFilePath()
+        {
+            return FilePath;
+        }
+
+        public string GetFileNameWithoutExtension()
+        {
+            return Path.GetFileNameWithoutExtension(FilePath);
+        }
+
+        public string GetExtension()
+        {
+            return Path.GetExtension(FilePath);
+        }
+
+        public string GetFileName()
+        {
+            return Path.GetFileName(FilePath);
+        }
+
+        public int GetSampleIndex()
+        {
+            return SampleIndex;
+        }
+
+        public string GetSampleName()
+        {
+            return SampleName;
+        }
+
+        public string GetSampleOrFileName()
+        {
+            return GetSampleName() ?? GetFileNameWithoutExtension();
+        }
+
+        public static MsDataFileId Parse(string url)
+        {
+            if (url.StartsWith(UnifiUrl.UrlPrefix))
+            {
+                return new MsDataFileId(url);
+            }
+            return new MsDataFileId(SampleHelp.GetPathFilePart(url),
+                SampleHelp.GetPathSampleNamePart(url),
+                SampleHelp.GetPathSampleIndexPart(url));
+        }
+
+        public override string ToString()
+        {
+            return SampleHelp.EncodePath(FilePath, SampleName, SampleIndex, null, false, false, null);
+        }
+
+        bool Equals(MsDataFileId other)
+        {
+            return string.Equals(FilePath, other.FilePath) &&
+                   string.Equals(SampleName, other.SampleName) &&
+                   SampleIndex == other.SampleIndex;
         }
 
         public override bool Equals(object obj)
         {
-            return ReferenceEquals(this, obj) || obj is MsDataFileId other && Equals(other);
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((MsDataFileId)obj);
         }
 
         public override int GetHashCode()
         {
-            return _key.GetHashCode();
+            unchecked
+            {
+                int hashCode = FilePath.GetHashCode();
+                hashCode = (hashCode * 397) ^ (SampleName != null ? SampleName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ SampleIndex;
+                return hashCode;
+            }
         }
     }
 }

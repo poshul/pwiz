@@ -160,10 +160,10 @@ namespace pwiz.SkylineTestTutorial
                 {
                     var importResultsDlg1 = ShowDialog<ImportResultsDlg>(SkylineWindow.ImportResults);
                     var openDataSourceDialog1 = ShowDialog<OpenDataSourceDialog>(() => importResultsDlg1.NamedPathSets =
-                        importResultsDlg1.GetDataSourcePathsFile(null));
+                        importResultsDlg1.GetDataSourceUrisFile(null));
                     RunUI(() =>
                     {
-                        openDataSourceDialog1.CurrentDirectory = new MsDataFilePath(GetTestPath());
+                        openDataSourceDialog1.CurrentDirectory = new MsDataFileLocalUri(GetTestPath());
                         openDataSourceDialog1.SelectAllFileType(ExtWatersRaw);
                     });
                     PauseForScreenShot<ImportResultsSamplesDlg>("Import Results Files form", 6);

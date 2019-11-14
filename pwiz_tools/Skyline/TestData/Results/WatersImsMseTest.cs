@@ -124,7 +124,7 @@ namespace pwiz.SkylineTestData.Results
                 testModeStr = "with drift times from spectral library";
             }
 
-            listChromatograms.Add(AssertResult.FindChromatogramSet(document, new MsDataFilePath(mz5Path)) ??
+            listChromatograms.Add(AssertResult.FindChromatogramSet(document, new MsDataFileLocalUri(mz5Path)) ??
                                     new ChromatogramSet(Path.GetFileName(mz5Path).Replace('.', '_'), new[] { mz5Path }));
             using (var docContainer = new ResultsTestDocumentContainer(document, docPath))
             {
@@ -208,7 +208,7 @@ namespace pwiz.SkylineTestData.Results
                             docContainer.AssertComplete();
 
                             document2 = docContainer.Document;
-                            var im = document2.Settings.GetIonMobilities(document2.MoleculeLibKeys.ToArray(), new MsDataFilePath(mz5Path));
+                            var im = document2.Settings.GetIonMobilities(document2.MoleculeLibKeys.ToArray(), new MsDataFileLocalUri(mz5Path));
                             var pep = document2.Molecules.First();
                             foreach (TransitionGroupDocNode nodeGroup in pep.Children)
                             {

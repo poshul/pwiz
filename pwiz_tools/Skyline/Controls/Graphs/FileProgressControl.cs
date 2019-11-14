@@ -31,7 +31,7 @@ namespace pwiz.Skyline.Controls.Graphs
     public partial class FileProgressControl : UserControl
     {
         private int _number;
-        private MsDataFileUri _filePath;
+        private MsDataFileId _filePath;
         private bool _selected;
         private Color _backColor;
         private int _errorCount;
@@ -90,7 +90,7 @@ namespace pwiz.Skyline.Controls.Graphs
             get { return progressBar.Value; }
         }
 
-        public MsDataFileUri FilePath
+        public MsDataFileId FilePath
         {
             get { return _filePath; }
             set

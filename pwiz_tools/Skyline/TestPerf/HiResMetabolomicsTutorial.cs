@@ -217,10 +217,10 @@ namespace TestPerf // This would be in TestTutorials if it didn't involve a 2GB 
                 {
                     var importResultsDlg1 = ShowDialog<ImportResultsDlg>(SkylineWindow.ImportResults);
                     var openDataSourceDialog1 = ShowDialog<OpenDataSourceDialog>(() => importResultsDlg1.NamedPathSets =
-                        importResultsDlg1.GetDataSourcePathsFile(null));
+                        importResultsDlg1.GetDataSourceUrisFile(null));
                     RunUI(() =>
                     {
-                        openDataSourceDialog1.CurrentDirectory = new MsDataFilePath(Path.Combine(TestFilesDirs.First().PersistentFilesDir, GetDataFolder()));
+                        openDataSourceDialog1.CurrentDirectory = new MsDataFileLocalUri(Path.Combine(TestFilesDirs.First().PersistentFilesDir, GetDataFolder()));
                         openDataSourceDialog1.SelectAllFileType(ExtWatersRaw);
                     });
                     PauseForScreenShot<ImportResultsSamplesDlg>("Import Results Files form", 6);

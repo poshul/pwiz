@@ -297,7 +297,7 @@ namespace pwiz.Skyline.Model
             double qValue)
         {
             char separator = TextUtil.GetCsvSeparator(cultureInfo);
-            string fileName = SampleHelp.GetFileName(features.Id.FilePath);
+            string fileName = SampleHelp.GetFileName(features.Id.FileUri.GetMsDataFileId());
             var fieldsArray = new List<string>
             {
                 Convert.ToString(features.Id, cultureInfo),

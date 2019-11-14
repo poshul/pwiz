@@ -494,7 +494,7 @@ namespace pwiz.SkylineTestTutorial
                 manageResultsDlg.OkDialog();
             });
             var importResultsDlg1 = ShowDialog<ImportResultsDlg>(SkylineWindow.ImportResults);
-            RunDlg<OpenDataSourceDialog>(() => importResultsDlg1.NamedPathSets = importResultsDlg1.GetDataSourcePathsFile(null),
+            RunDlg<OpenDataSourceDialog>(() => importResultsDlg1.NamedPathSets = importResultsDlg1.GetDataSourceUrisFile(null),
                 openDataSourceDialog =>
                 {
                     openDataSourceDialog.SelectAllFileType(ExtThermoRaw);

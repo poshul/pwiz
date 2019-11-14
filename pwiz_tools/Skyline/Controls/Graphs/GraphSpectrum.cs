@@ -287,7 +287,7 @@ namespace pwiz.Skyline.Controls.Graphs
 
         private bool SpectrumMatches(SpectrumDisplayInfo spectrumDisplayInfo, SpectrumIdentifier spectrumIdentifier)
         {
-            if (!string.Equals(spectrumDisplayInfo.FilePath.ToString(), spectrumIdentifier.SourceFile.ToString(), StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(spectrumDisplayInfo.FilePath.ToString(), spectrumIdentifier.SourceFileUri.GetMsDataFileId().ToString(), StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
@@ -668,14 +668,14 @@ namespace pwiz.Skyline.Controls.Graphs
                 var dictReplicateNameFiles = new Dictionary<string, HashSet<string>>();
                 foreach (var spectrumInfo in settings.GetRedundantSpectra(nodeGroup.Peptide, lookupSequence, charge, nodeGroup.TransitionGroup.LabelType, lookupMods))
                 {
-                    var matchingFile = settings.MeasuredResults.FindMatchingMSDataFile(MsDataFileUri.Parse(spectrumInfo.FilePath));
+                    var matchingFile = settings.MeasuredResults.FindMatchingMSDataFile(MsDataFileId.Parse(spectrumInfo.FilePath));
                     if (matchingFile == null)
                         continue;
 
                     string replicateName = matchingFile.Chromatograms.Name;
                     spectraRedundant.Add(new SpectrumDisplayInfo(spectrumInfo,
                                                                  replicateName,
-                                                                 matchingFile.FilePath,
+                                                                 matchingFile.FileUri,
                                                                  matchingFile.FileOrder,
                                                                  spectrumInfo.RetentionTime,
                                                                  false));
@@ -692,7 +692,7 @@ namespace pwiz.Skyline.Controls.Graphs
                         {
                             spectra[iBest] = new SpectrumDisplayInfo(spectra[iBest].SpectrumInfo,
                                                                      replicateName,
-                                                                     matchingFile.FilePath,
+                                                                     matchingFile.FileUri,
                                                                      0,
                                                                      spectrumInfo.RetentionTime,
                                                                      true);
@@ -1045,13 +1045,13 @@ namespace pwiz.Skyline.Controls.Graphs
         {
             
         }
-        public SpectrumIdentifier(MsDataFileUri sourceFile, double retentionTime)
+        public SpectrumIdentifier(MsDataFileUri sourceFileUri, double retentionTime)
         {
-            SourceFile = sourceFile;
+            SourceFileUri = sourceFileUri;
             RetentionTime = retentionTime;
         }
 
-        public MsDataFileUri SourceFile { get; private set; }
+        public MsDataFileUri SourceFileUri { get; private set; }
         public double RetentionTime { get; private set; }
     }
 

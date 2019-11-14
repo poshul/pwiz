@@ -334,7 +334,7 @@ namespace pwiz.Skyline.FileUI
                 foreach (var dataFile in LibraryRunsRemovedList)
                 {
                     var matchingFile =
-                        DocumentUIContainer.Document.Settings.MeasuredResults.FindMatchingMSDataFile(MsDataFileUri.Parse(dataFile));
+                        DocumentUIContainer.Document.Settings.MeasuredResults.FindMatchingMSDataFile(MsDataFileId.Parse(dataFile));
                     if (null != matchingFile)
                     {
                         int foundIndex = listResults.FindString(matchingFile.Chromatograms.Name);
@@ -648,9 +648,9 @@ namespace pwiz.Skyline.FileUI
             var listPathsMissing = new List<string>();
             // Avoid checking paths multiple times for existence
             var setPaths = new HashSet<string>();
-            foreach (var filePath in chromatogramSets.SelectMany(set => set.MSDataFilePaths))
+            foreach (var filePath in chromatogramSets.SelectMany(set => set.MSDataFileUris))
             {
-                MsDataFilePath msDataFilePath = filePath as MsDataFilePath;
+                MsDataFileLocalUri msDataFilePath = filePath as MsDataFileLocalUri;
                 if (null == msDataFilePath)
                 {
                     continue;

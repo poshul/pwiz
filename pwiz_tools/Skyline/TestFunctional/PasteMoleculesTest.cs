@@ -1300,7 +1300,7 @@ namespace pwiz.SkylineTestFunctional
                 for (int i = 0; i < paths.Length; i++)
                 {
                     pathHolder[i] = new KeyValuePair<string, MsDataFileUri[]>(paths[i].Remove(paths[i].Length - ExtensionTestContext.ExtWatersRaw.Length),
-                        new[] {new MsDataFilePath(TestFilesDir.GetTestPath(paths[i]))});
+                        new[] {new MsDataFileLocalUri(TestFilesDir.GetTestPath(paths[i]))});
                 }
                 importResultsDlg.NamedPathSets = pathHolder;
             });

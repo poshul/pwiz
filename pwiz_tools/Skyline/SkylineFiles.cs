@@ -832,9 +832,9 @@ namespace pwiz.Skyline
                 //var foundFiles = new List<string>();
                 foreach (var chromSet in document.Settings.MeasuredResults.Chromatograms)
                 {
-                    foreach (var pathFileSample in chromSet.MSDataFilePaths)
+                    foreach (var pathFileSample in chromSet.MSDataFileUris)
                     {
-                        var msDataFilePath = pathFileSample as MsDataFilePath;
+                        var msDataFilePath = pathFileSample as MsDataFileLocalUri;
                         if (null == msDataFilePath)
                         {
                             continue;
@@ -2515,7 +2515,7 @@ namespace pwiz.Skyline
                         description = string.Format(Resources.SkylineWindow_ImportResults_Import__0__, namedResults[0].Key); 
 
                     // Check with user for Waters lockmass settings if any, results written to Settings.Default
-                    // If lockmass correction is desired, MsDataFileUri values in namedResults are modified by this call.
+                    // If lockmass correction is desired, MsDataFileId values in namedResults are modified by this call.
                     if (!ImportResultsLockMassDlg.UpdateNamedResultsParameters(this, DocumentUI, ref namedResults))
                         return; // User cancelled, no change
 
@@ -2677,7 +2677,7 @@ namespace pwiz.Skyline
             else
             {
                 // Append to an existing chromatogram set
-                var dataFilePaths = new List<MsDataFileUri>(chrom.MSDataFilePaths);
+                var dataFilePaths = new List<MsDataFileUri>(chrom.MSDataFileUris);
                 foreach (var sourcePath in dataSources)
                 {
                     if (!dataFilePaths.Contains(sourcePath))

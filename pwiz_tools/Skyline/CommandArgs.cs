@@ -324,7 +324,7 @@ namespace pwiz.Skyline
 
         private void ParseImportFile(NameValuePair pair)
         {
-            ReplicateFile.Add(new MsDataFilePath(pair.ValueFullPath));
+            ReplicateFile.Add(new MsDataFileLocalUri(pair.ValueFullPath));
         }
 
         private bool ParseImportNamingPattern(NameValuePair pair)

@@ -2602,7 +2602,7 @@ namespace pwiz.Skyline
                 {
                     var chromatogramSet = settings.MeasuredResults.Chromatograms[iResult];
                     if (fileId != null)
-                        filePath = chromatogramSet.GetFileInfo(fileId).FilePath;
+                        filePath = chromatogramSet.GetFileInfo(fileId).FileUri;
                     return chromatogramSet.Name;                    
                 }
             }
@@ -2758,13 +2758,13 @@ namespace pwiz.Skyline
         /// </summary>
         private static SrmDocument PickPeak(SrmDocument document, PickedPeakEventArgs e)
         {
-            document = document.ChangePeak(e.GroupPath, e.NameSet, e.FilePath, e.TransitionId, e.RetentionTime.MeasuredTime, UserSet.TRUE);
+            document = document.ChangePeak(e.GroupPath, e.NameSet, e.FileUri, e.TransitionId, e.RetentionTime.MeasuredTime, UserSet.TRUE);
             var activeTransitionGroup = (TransitionGroupDocNode) document.FindNode(e.GroupPath);
             if (activeTransitionGroup.RelativeRT != RelativeRT.Matching)
             {
                 return document;
             }
-            var activeChromInfo = FindChromInfo(document, activeTransitionGroup, e.NameSet, e.FilePath);
+            var activeChromInfo = FindChromInfo(document, activeTransitionGroup, e.NameSet, e.FileUri);
             var peptide = (PeptideDocNode) document.FindNode(e.GroupPath.Parent);
             // See if there are any other transition groups that should have their peak bounds set to the same value
             foreach (var transitionGroup in peptide.TransitionGroups)
@@ -2778,19 +2778,19 @@ namespace pwiz.Skyline
                 {
                     continue;
                 }
-                var chromInfo = FindChromInfo(document, transitionGroup, e.NameSet, e.FilePath);
+                var chromInfo = FindChromInfo(document, transitionGroup, e.NameSet, e.FileUri);
                 if (null == chromInfo)
                 {
                     continue;
                 }
-                document = document.ChangePeak(groupPath, e.NameSet, e.FilePath, null, 
+                document = document.ChangePeak(groupPath, e.NameSet, e.FileUri, null, 
                     activeChromInfo.StartRetentionTime, activeChromInfo.EndRetentionTime, UserSet.TRUE, activeChromInfo.Identified, true);
             }
             return document;
         }
 
         /// <summary>
-        /// Finds the TransitionGroupChromInfo that matches the specified ChromatogramSet name and file path.
+        /// Finds the TransitionGroupChromInfo that matches the specified ChromatogramSet name and file path, ignoring any decoration like centroid_ms1 etc.
         /// </summary>
         public static TransitionGroupChromInfo FindChromInfo(SrmDocument document,
             TransitionGroupDocNode transitionGroupDocNode, string nameChromatogramSet, MsDataFileUri filePath)
@@ -2801,7 +2801,7 @@ namespace pwiz.Skyline
             {
                 return null;
             }
-            var chromFileInfoId = chromatogramSet.FindFile(filePath);
+            var chromFileInfoId = chromatogramSet.FindFile(filePath.GetMsDataFileId());
             if (null == chromFileInfoId)
             {
                 return null;
@@ -2950,7 +2950,7 @@ namespace pwiz.Skyline
             var peptideChanges = new Dictionary<IdentityPath, ChangedPeakBoundsEventArgs>();
             foreach (var change in changes)
             {
-                document = document.ChangePeak(change.GroupPath, change.NameSet, change.FilePath, change.Transition,
+                document = document.ChangePeak(change.GroupPath, change.NameSet, change.FileUri, change.Transition,
                     change.StartTime.MeasuredTime, change.EndTime.MeasuredTime, UserSet.TRUE, change.Identified, false);
                 changedGroupIds.Add(change.GroupPath);
                 if (!peptideChanges.ContainsKey(change.GroupPath.Parent)) {
@@ -2978,11 +2978,11 @@ namespace pwiz.Skyline
                     {
                         continue;
                     }
-                    if (null == FindChromInfo(document, transitionGroup, change.NameSet, change.FilePath))
+                    if (null == FindChromInfo(document, transitionGroup, change.NameSet, change.FileUri))
                     {
                         continue;
                     }
-                    document = document.ChangePeak(groupId, change.NameSet, change.FilePath, null,
+                    document = document.ChangePeak(groupId, change.NameSet, change.FileUri, null,
                         change.StartTime.MeasuredTime, change.EndTime.MeasuredTime, UserSet.TRUE, change.Identified, true);
                 }
             }

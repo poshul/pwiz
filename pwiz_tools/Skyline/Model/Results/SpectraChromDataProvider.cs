@@ -116,7 +116,7 @@ namespace pwiz.Skyline.Model.Results
 
             // Create the filter responsible for chromatogram extraction
             bool firstPass = (_retentionTimePredictor != null);
-            _filter = new SpectrumFilter(_document, FileInfo.FilePath, new DataFileInstrumentInfo(dataFile),
+            _filter = new SpectrumFilter(_document, FileInfo.FileUri, new DataFileInstrumentInfo(dataFile),
                 _maxIonMobilityValue, _retentionTimePredictor, firstPass, _globalChromatogramExtractor);
 
             if (!_isSrm && (_filter.EnabledMs || _filter.EnabledMsMs))
@@ -167,7 +167,7 @@ namespace pwiz.Skyline.Model.Results
             // This is the expensive part - check if there are any ion mobilities in the libraries that will need windows
             // TODO (bspratt): Use a quicker check for any ion mobility for a file - this especially slow with big DDA libraries used in DIA where the library may be composed of 40 files none of them this one
             // Though this is rarely used - the linear width option is really only used in Waters SONAR data
-            return _document.Settings.GetIonMobilities(_document.MoleculeLibKeys.ToArray(), new MsDataFilePath(dataFile.FilePath)) != null;
+            return _document.Settings.GetIonMobilities(_document.MoleculeLibKeys.ToArray(), new MsDataFileLocalUri(dataFile.FilePath)) != null;
         }
 
 
@@ -213,7 +213,7 @@ namespace pwiz.Skyline.Model.Results
             var dataFile = _spectra.Detach();
 
             // Start the second pass
-            _filter = new SpectrumFilter(_document, FileInfo.FilePath, _filter, _maxIonMobilityValue, _retentionTimePredictor, false, _globalChromatogramExtractor);
+            _filter = new SpectrumFilter(_document, FileInfo.FileUri, _filter, _maxIonMobilityValue, _retentionTimePredictor, false, _globalChromatogramExtractor);
             _spectra = null;
             _isSrm = false;
 

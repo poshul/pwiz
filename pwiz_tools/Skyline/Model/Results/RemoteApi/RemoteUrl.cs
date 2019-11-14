@@ -142,9 +142,9 @@ namespace pwiz.Skyline.Model.Results.RemoteApi
             return Path.GetExtension(GetFilePath());
         }
 
-        public override MsDataFileUri GetLocation()
+        public override MsDataFileId GetMsDataFileId()
         {
-            return this;
+            return new MsDataFileId(GetFileName());
         }
 
         public override LockMassParameters GetLockMassParameters()
@@ -181,11 +181,6 @@ namespace pwiz.Skyline.Model.Results.RemoteApi
         public override string ToString()
         {
             return AccountType.Name + @":" + GetParameters();
-        }
-
-        public override MsDataFileId ToFileId()
-        {
-            return new MsDataFileId(GetFilePath());
         }
 
         public override int GetSampleIndex()
@@ -266,12 +261,6 @@ namespace pwiz.Skyline.Model.Results.RemoteApi
             {
                 return string.Empty;
             }
-
-            public override MsDataFileId ToFileId()
-            {
-                return new MsDataFileId(string.Empty);
-            }
-
 
             public override MsDataFileImpl OpenMsDataFile(bool simAsSpectra, int preferOnlyMsLevel, bool? combineIonMobilitySpectra, bool ignoreZeroIntensityPoints)
             {

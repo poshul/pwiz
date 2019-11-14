@@ -35,7 +35,7 @@ namespace pwiz.Skyline.Model.Results
     public sealed class ChromatogramCache : Immutable, IDisposable
     {
         public const CacheFormatVersion FORMAT_VERSION_CACHE_11 = CacheFormatVersion.Eleven; // Adds chromatogram start, stop times, and uncompressed size info, and new flag bit for SignedMz
-        public const CacheFormatVersion FORMAT_VERSION_CACHE_10 = CacheFormatVersion.Ten; // Introduces waters lockmass correction in MSDataFileUri syntax
+        public const CacheFormatVersion FORMAT_VERSION_CACHE_10 = CacheFormatVersion.Ten; // Introduces waters lockmass correction in MsDataFileUri syntax
         public const CacheFormatVersion FORMAT_VERSION_CACHE_9 = CacheFormatVersion.Nine; // Introduces abbreviated scan ids
         public const CacheFormatVersion FORMAT_VERSION_CACHE_8 = CacheFormatVersion.Eight; // Introduces ion mobility data
         public const CacheFormatVersion FORMAT_VERSION_CACHE_7 = CacheFormatVersion.Seven; // Introduces UTF8 character support
@@ -88,7 +88,7 @@ namespace pwiz.Skyline.Model.Results
             StringBuilder sbName = new StringBuilder(dataFilePath.GetFileNameWithoutExtension());
             // If the data file is not in the same directory as the document, add a checksum
             // of the data directory.
-            var msDataFilePath = dataFilePath as MsDataFilePath;
+            var msDataFilePath = dataFilePath as MsDataFileLocalUri;
             if (msDataFilePath != null)
             {
                 string dirData = Path.GetDirectoryName(msDataFilePath.FilePath);
@@ -147,9 +147,14 @@ namespace pwiz.Skyline.Model.Results
         public IList<ChromCachedFile> CachedFiles { get { return _cachedFiles; } }
         public IPooledStream ReadStream { get; private set; }
 
-        public IEnumerable<MsDataFileUri> CachedFilePaths
+        public IEnumerable<MsDataFileId> CachedFilePaths
         {
             get { return CachedFiles.Select(cachedFile => cachedFile.FilePath); }
+        }
+
+        public IEnumerable<MsDataFileUri> CachedFileUris
+        {
+            get { return CachedFiles.Select(cachedFile => cachedFile.FileUri); }
         }
 
         /// <summary>
@@ -221,7 +226,7 @@ namespace pwiz.Skyline.Model.Results
         /// <summary>
         /// Returns true, if a single path can be found in a set of caches.
         /// </summary>
-        private static bool IsCovered(MsDataFileUri path, IEnumerable<ChromatogramCache> caches)
+        private static bool IsCovered(MsDataFileId path, IEnumerable<ChromatogramCache> caches)
         {
             return caches.Any(cache => cache.CachedFilePaths.Contains(path));
         }
@@ -613,7 +618,7 @@ namespace pwiz.Skyline.Model.Results
                 else
                 {
                     // Import using threads in this process.
-                    status = ((ChromatogramLoadingStatus) status).ChangeFilePath(msDataFileUri);
+                    status = ((ChromatogramLoadingStatus) status).ChangeFileUri(msDataFileUri);
                     var builder = new ChromCacheBuilder(document, cacheRecalc, cachePath, msDataFileUri, loader, status, complete);
                     builder.BuildCache();
                 }
@@ -726,7 +731,7 @@ namespace pwiz.Skyline.Model.Results
                 string filePathString = formatVersion > CacheFormatVersion.Six
                                       ? Encoding.UTF8.GetString(filePathBuffer, 0, lenPath)
                                       : Encoding.Default.GetString(filePathBuffer, 0, lenPath); // Backward compatibility
-                var filePath = MsDataFileUri.Parse(filePathString);
+                var fileUri = MsDataFileUri.Parse(filePathString);
 
                 string sampleId = null;
                 int lenSampleId = cachedFileStruct.lenSampleId;
@@ -758,7 +763,7 @@ namespace pwiz.Skyline.Model.Results
                 DateTime modifiedTime = DateTime.FromBinary(cachedFileStruct.modified);
                 DateTime? runstartTime = cachedFileStruct.runstart != 0 ? DateTime.FromBinary(cachedFileStruct.runstart) : (DateTime?)null;
                 var instrumentInfoList = InstrumentInfoUtil.GetInstrumentInfo(instrumentInfoStr);
-                raw.ChromCacheFiles[i] = new ChromCachedFile(filePath,
+                raw.ChromCacheFiles[i] = new ChromCachedFile(fileUri,
                                                              cachedFileStruct.flags,
                                                              modifiedTime,
                                                              runstartTime,
@@ -768,7 +773,7 @@ namespace pwiz.Skyline.Model.Results
                                                              cachedFileStruct.locationScanIds,
                                                              cachedFileStruct.ticArea == 0 ? (float?) null : cachedFileStruct.ticArea,
                                                              ChromCachedFile.IonMobilityUnitsFromFlags(cachedFileStruct.flags),
-                                                             filePath.GetCombineIonMobilitySpectra() ?? false,
+                                                             fileUri.GetCombineIonMobilitySpectra() ?? false,
                                                              sampleId,
                                                              serialNumber,
                                                              instrumentInfoList);
@@ -988,7 +993,7 @@ namespace pwiz.Skyline.Model.Results
             {
                 bool? combineIonMobilitySpectra =
                     cachedFile.HasCombinedIonMobilitySpectra ? true : cachedFile.IonMobilityUnits != eIonMobilityUnits.none ? false : (bool?) null;
-                var filePathBytes = Encoding.UTF8.GetBytes(cachedFile.FilePath.ChangeCombineIonMobilitySpectra(combineIonMobilitySpectra).ToString());
+                var filePathBytes = Encoding.UTF8.GetBytes(cachedFile.FileUri.ChangeCombineIonMobilitySpectra(combineIonMobilitySpectra).ToString());
                 var instrumentInfoBytes =
                     Encoding.UTF8.GetBytes(InstrumentInfoUtil.GetInstrumentInfoString(cachedFile.InstrumentInfoList));
                 var sampleIdBytes = Encoding.UTF8.GetBytes(cachedFile.SampleId ?? string.Empty);
@@ -1156,7 +1161,7 @@ namespace pwiz.Skyline.Model.Results
 
         public void GetStatusDimensions(MsDataFileUri msDataFilePath, out float? maxRetentionTime, out float? maxIntensity)
         {
-            int fileIndex = CachedFiles.IndexOf(f => Equals(f.FilePath, msDataFilePath));
+            int fileIndex = CachedFiles.IndexOf(f => Equals(f.FilePath, msDataFilePath.GetMsDataFileId()));
             if (fileIndex == -1)
             {
                 maxRetentionTime = maxIntensity = null;
@@ -1171,7 +1176,7 @@ namespace pwiz.Skyline.Model.Results
 
         public IEnumerable<ChromKeyIndices> GetChromKeys(MsDataFileUri msDataFilePath)
         {
-            int fileIndex = CachedFiles.IndexOf(f => Equals(f.FilePath, msDataFilePath));
+            int fileIndex = CachedFiles.IndexOf(f => Equals(f.FilePath, msDataFilePath.GetMsDataFileId()));
             if (fileIndex == -1)
                 yield break;
 
@@ -1208,7 +1213,7 @@ namespace pwiz.Skyline.Model.Results
             }
         }
 
-        public ChromatogramCache Optimize(string documentPath, IEnumerable<MsDataFileUri> msDataFilePaths, IStreamManager streamManager,
+        public ChromatogramCache Optimize(string documentPath, IEnumerable<MsDataFileId> msDataFilePaths, IStreamManager streamManager,
             ILongWaitBroker progress)
         {
             string cachePathOpt = FinalPathForName(documentPath, null);
@@ -1216,9 +1221,9 @@ namespace pwiz.Skyline.Model.Results
         }
 
         public ChromatogramCache OptimizeToPath(CacheFormatVersion? formatVersion, string cachePathOpt,
-            IEnumerable<MsDataFileUri> msDataFilePaths, IStreamManager streamManager, ILongWaitBroker progress)
+            IEnumerable<MsDataFileId> msDataFilePaths, IStreamManager streamManager, ILongWaitBroker progress)
         {
-            var keepFilePaths = new HashSet<MsDataFileUri>(msDataFilePaths);
+            var keepFilePaths = new HashSet<MsDataFileId>(msDataFilePaths);
             var keepFileIndices = new HashSet<int>();
             for (int i = 0; i < _cachedFiles.Count; i++)
             {

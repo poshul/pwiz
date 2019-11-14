@@ -77,7 +77,7 @@ namespace pwiz.SkylineTestUtil
                 {
                     if (!string.IsNullOrEmpty(dataPath))
                     {
-                        listChromatograms.Add(AssertResult.FindChromatogramSet(docSmallMol, new MsDataFilePath(dataPath)) ??
+                        listChromatograms.Add(AssertResult.FindChromatogramSet(docSmallMol, new MsDataFileLocalUri(dataPath)) ??
                                               new ChromatogramSet(Path.GetFileName(dataPath).Replace('.', '_'),
                                                   new[] { dataPath }));
                     }

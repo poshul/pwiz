@@ -180,7 +180,7 @@ namespace pwiz.SkylineTestFunctional
             List<string> dataFiles = DocumentLibrary.LibraryFiles.FilePaths.ToList();
             string dataFileToRemove = dataFiles[0];
 
-            var matchingFile = SkylineWindow.Document.Settings.MeasuredResults.FindMatchingMSDataFile(MsDataFileUri.Parse(dataFileToRemove));
+            var matchingFile = SkylineWindow.Document.Settings.MeasuredResults.FindMatchingMSDataFile(MsDataFileId.Parse(dataFileToRemove));
             Assert.IsNotNull(matchingFile);
 
             var docBefore = SkylineWindow.Document;

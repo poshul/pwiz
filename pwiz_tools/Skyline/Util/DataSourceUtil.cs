@@ -130,10 +130,9 @@ namespace pwiz.Skyline.Util
             }
         }
 
-        public static bool IsWiffFile(MsDataFileUri fileName)
+        public static bool IsWiffFile(MsDataFileId fileName)
         {
-            MsDataFilePath msDataFilePath = fileName as MsDataFilePath;
-            return null != msDataFilePath && IsWiffFile(msDataFilePath.FilePath);
+            return IsWiffFile(fileName.FilePath);
         }
 
         public static bool IsWiffFile(string filePath)
@@ -222,12 +221,12 @@ namespace pwiz.Skyline.Util
                     foreach (var dataDirInfo in GetDirectories(subDirInfo))
                     {
                         if (IsDataSource(dataDirInfo))
-                            listDataPaths.Add(new MsDataFilePath(dataDirInfo.FullName));
+                            listDataPaths.Add(new MsDataFileLocalUri(dataDirInfo.FullName));
                     }
                     foreach (var dataFileInfo in GetFiles(subDirInfo))
                     {
                         if (IsDataSource(dataFileInfo))
-                            listDataPaths.Add(new MsDataFilePath(dataFileInfo.FullName));
+                            listDataPaths.Add(new MsDataFileLocalUri(dataFileInfo.FullName));
                     }
                     if (listDataPaths.Count == 0)
                         continue;
@@ -250,7 +249,7 @@ namespace pwiz.Skyline.Util
                     {
                         string dataSource = dataDirInfo.FullName;
                         listNamedPaths.Add(new KeyValuePair<string, MsDataFileUri[]>(
-                                       Path.GetFileNameWithoutExtension(dataSource), new MsDataFileUri[] { new MsDataFilePath(dataSource),  }));
+                                       Path.GetFileNameWithoutExtension(dataSource), new MsDataFileUri[] { new MsDataFileLocalUri(dataSource),  }));
                     }
                 }
 
@@ -263,7 +262,7 @@ namespace pwiz.Skyline.Util
                         // Keep from doing the extra work on other types.
                         if (IsWiffFile(dataSource))
                         {
-                            MsDataFilePath[] paths = GetWiffSubPaths(dataSource);
+                            var paths = GetWiffSubPaths(dataSource);
                             if (paths == null)
                                 return null;    // An error occurred
                             // Multiple paths then add as samples
@@ -282,7 +281,7 @@ namespace pwiz.Skyline.Util
                         }
 
                         listNamedPaths.Add(new KeyValuePair<string, MsDataFileUri[]>(
-                                       Path.GetFileNameWithoutExtension(dataSource), new MsDataFileUri[] { new MsDataFilePath(dataSource) }));
+                                       Path.GetFileNameWithoutExtension(dataSource), new MsDataFileUri[] { new MsDataFileLocalUri(dataSource) }));
                     }
                 }
             }
@@ -317,7 +316,7 @@ namespace pwiz.Skyline.Util
             }
         }
 
-        private static MsDataFilePath[] GetWiffSubPaths(string filePath)
+        private static MsDataFileLocalUri[] GetWiffSubPaths(string filePath)
         {
             string[] dataIds;
             try
@@ -336,13 +335,13 @@ namespace pwiz.Skyline.Util
             return GetWiffSubPaths(filePath, dataIds, null);
         }
 
-        public static MsDataFilePath[] GetWiffSubPaths(string filePath, string[] dataIds, Func<string, string[], IEnumerable<int>> sampleChooser)
+        public static MsDataFileLocalUri[] GetWiffSubPaths(string filePath, string[] dataIds, Func<string, string[], IEnumerable<int>> sampleChooser)
         {
             if (dataIds == null)
                 return null;
             // WIFF without at least 2 samples just use its file name.
             if (dataIds.Length < 2)
-                return new[] { new MsDataFilePath(filePath, null, -1),  };
+                return new[] { new MsDataFileLocalUri(filePath, null, -1),  };
 
             // Escape all the sample ID names, so that they may be used in file names.
             for (int i = 0; i < dataIds.Length; i++)
@@ -367,9 +366,9 @@ namespace pwiz.Skyline.Util
             }
 
             // Encode sub-paths
-            var listPaths = new List<MsDataFilePath>();
+            var listPaths = new List<MsDataFileLocalUri>();
             foreach (int sampleIndex in sampleIndices)
-                listPaths.Add(new MsDataFilePath(filePath, dataIds[sampleIndex], sampleIndex));
+                listPaths.Add(new MsDataFileLocalUri(filePath, dataIds[sampleIndex], sampleIndex));
 
             if (listPaths.Count == 0)
                 return null;
@@ -382,7 +381,7 @@ namespace pwiz.Skyline.Util
         /// </summary>
         public static IEnumerable<MsDataFileUri> ListSubPaths(MsDataFileUri msDataFileUri)
         {
-            var msDataFilePath = msDataFileUri as MsDataFilePath;
+            var msDataFilePath = msDataFileUri as MsDataFileLocalUri;
             if (msDataFilePath == null || !IsWiffFile(msDataFilePath.FilePath))
             {
                 return new[] {msDataFileUri};

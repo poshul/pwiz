@@ -59,7 +59,7 @@ namespace pwiz.SkylineTestFunctional
             {
                 importResults.NamedPathSets =
                     new[] {"MIDAS1", "MIDAS2", "MIDAS3"}.Select((sampleName, index) => new KeyValuePair<string, MsDataFileUri[]>(sampleName,
-                        new MsDataFileUri[] {new MsDataFilePath(wiffPath, sampleName, index)})).ToArray();
+                        new MsDataFileUri[] {new MsDataFileLocalUri(wiffPath, sampleName, index)})).ToArray();
             });
             var importResultsNameDlg = ShowDialog<ImportResultsNameDlg>(importResults.OkDialog);
             OkDialog(importResultsNameDlg, importResultsNameDlg.NoDialog);

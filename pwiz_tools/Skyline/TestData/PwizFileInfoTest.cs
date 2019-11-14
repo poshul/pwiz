@@ -128,7 +128,7 @@ namespace pwiz.SkylineTestData
                     var chromSets = new[]
                     {
                         new ChromatogramSet(replicateName, new[]
-                            { new MsDataFilePath(testFilesDir.GetTestPath("PressureTrace1" + extRaw)),  }),
+                            { new MsDataFileLocalUri(testFilesDir.GetTestPath("PressureTrace1" + extRaw)),  }),
                     };
                     var docResults = doc.ChangeMeasuredResults(new MeasuredResults(chromSets));
                     Assert.IsTrue(docContainer.SetDocument(docResults, doc, true));

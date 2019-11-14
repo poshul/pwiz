@@ -50,20 +50,20 @@ namespace pwiz.Skyline.Model.ElementLocators
         {
             return ChangeProp(ImClone(this), im => im.ResultFileName = resultFileName);
         }
-        public MsDataFileUri ResultFilePath { get; private set; }
+        public MsDataFileUri ResultFileUri { get; private set; }
 
-        public ResultRef ChangeResultFilePath(MsDataFileUri resultFilePath)
+        public ResultRef ChangeResultFileUri(MsDataFileUri resultFilePath)
         {
-            return ChangeProp(ImClone(this), im => im.ResultFilePath = resultFilePath);
+            return ChangeProp(ImClone(this), im => im.ResultFileUri = resultFilePath);
         }
 
-        private bool Matches(MsDataFileUri msDataFilePath)
+        private bool Matches(MsDataFileUri msDataFileUri)
         {
-            if (ResultFileName != null && !Equals(ResultFileName, ResultFileRef.GetName(msDataFilePath)))
+            if (ResultFileName != null && !Equals(ResultFileName, ResultFileRef.GetName(msDataFileUri)))
             {
                 return false;
             }
-            if (ResultFilePath != null && !Equals(ResultFilePath, msDataFilePath))
+            if (ResultFileUri != null && !Equals(ResultFileUri, msDataFileUri))
             {
                 return false;
             }
@@ -92,12 +92,12 @@ namespace pwiz.Skyline.Model.ElementLocators
 
         public ChromFileInfo FindChromFileInfo(ChromatogramSet chromatogramSet)
         {
-            return chromatogramSet.MSDataFileInfos.FirstOrDefault(info => Matches(info.FilePath));
+            return chromatogramSet.MSDataFileInfos.FirstOrDefault(info => Matches(info.FileUri));
         }
 
         protected bool Equals(ResultRef other)
         {
-            return base.Equals(other) && OptimizationStep == other.OptimizationStep && string.Equals(ResultFileName, other.ResultFileName) && Equals(ResultFilePath, other.ResultFilePath);
+            return base.Equals(other) && OptimizationStep == other.OptimizationStep && string.Equals(ResultFileName, other.ResultFileName) && Equals(ResultFileUri, other.ResultFileUri);
         }
 
         public override bool Equals(object obj)
@@ -115,7 +115,7 @@ namespace pwiz.Skyline.Model.ElementLocators
                 int hashCode = base.GetHashCode();
                 hashCode = (hashCode * 397) ^ OptimizationStep;
                 hashCode = (hashCode * 397) ^ (ResultFileName != null ? ResultFileName.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (ResultFilePath != null ? ResultFilePath.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (ResultFileUri != null ? ResultFileUri.GetHashCode() : 0);
                 return hashCode;
             }
         }
@@ -127,9 +127,9 @@ namespace pwiz.Skyline.Model.ElementLocators
                 result = new[] { new KeyValuePair<string, string>(ATTR_FILENAME, ResultFileName) }
                     .Concat(result);
             }
-            if (ResultFilePath != null)
+            if (ResultFileUri != null)
             {
-                result = new[] { new KeyValuePair<string, string>(ATTR_FILEPATH, ResultFilePath.ToString()) }
+                result = new[] { new KeyValuePair<string, string>(ATTR_FILEPATH, ResultFileUri.ToString()) }
                     .Concat(result);
             }
             return result;
@@ -186,11 +186,11 @@ namespace pwiz.Skyline.Model.ElementLocators
                 var chromFileInfo = chromatogramSet.GetFileInfo(chromInfo.FileId);
                 if (ResultFileRef.UseFullPath(chromatogramSet))
                 {
-                    result = (ResultRef<TDocNode, TChromInfo>)result.ChangeResultFilePath(chromFileInfo.FilePath);
+                    result = (ResultRef<TDocNode, TChromInfo>)result.ChangeResultFileUri(chromFileInfo.FileUri);
                 }
                 else
                 {
-                    result = (ResultRef<TDocNode, TChromInfo>)result.ChangeResultFileName(ResultFileRef.GetName(chromFileInfo.FilePath));
+                    result = (ResultRef<TDocNode, TChromInfo>)result.ChangeResultFileName(ResultFileRef.GetName(chromFileInfo.FileUri));
                 }
             }
             return result;

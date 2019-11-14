@@ -116,7 +116,7 @@ namespace TestPerf // This would be in tutorial tests if it didn't take about 10
 
                 RunUI(() =>
                 {
-                    openDataSourceDialog.CurrentDirectory = new MsDataFilePath(DataPath);
+                    openDataSourceDialog.CurrentDirectory = new MsDataFileLocalUri(DataPath);
                     openDataSourceDialog.SelectAllFileType(".d");
                 });
                 PauseForScreenShot<OpenDataSourceDialog>("Import results files", 5);
@@ -263,7 +263,7 @@ namespace TestPerf // This would be in tutorial tests if it didn't take about 10
                 var importResults = ShowDialog<ImportResultsDlg>(choosePredictionReplicates.OkDialog);
                 RunDlg<OpenDataSourceDialog>(importResults.OkDialog, openDataSourceDialog =>
                 {
-                    openDataSourceDialog.CurrentDirectory = new MsDataFilePath(DataPath);
+                    openDataSourceDialog.CurrentDirectory = new MsDataFileLocalUri(DataPath);
                     openDataSourceDialog.SelectAllFileType(Yeast_BSA);
                     openDataSourceDialog.Open();
                 });

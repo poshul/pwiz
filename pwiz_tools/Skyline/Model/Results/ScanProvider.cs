@@ -171,7 +171,7 @@ namespace pwiz.Skyline.Model.Results
         {
             if (_dataFile == null)
             {
-                if (DataFilePath is MsDataFilePath)
+                if (DataFilePath is MsDataFileLocalUri)
                 {
                     string dataFilePath = FindDataFilePath();
                     var lockMassParameters = DataFilePath.GetLockMassParameters();
@@ -201,7 +201,7 @@ namespace pwiz.Skyline.Model.Results
 
         public string FindDataFilePath()
         {
-            var msDataFilePath = DataFilePath as MsDataFilePath;
+            var msDataFilePath = DataFilePath as MsDataFileLocalUri;
             if (null == msDataFilePath)
             {
                 return null;

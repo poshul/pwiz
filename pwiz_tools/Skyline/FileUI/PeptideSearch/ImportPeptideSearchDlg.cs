@@ -351,7 +351,7 @@ namespace pwiz.Skyline.FileUI.PeptideSearch
                     foreach (var dataFile in documentLibrary.LibraryFiles.FilePaths)
                     {
                         if (!doc.Settings.HasResults ||
-                                doc.Settings.MeasuredResults.FindMatchingMSDataFile(MsDataFileUri.Parse(dataFile)) == null)
+                                doc.Settings.MeasuredResults.FindMatchingMSDataFile(MsDataFileId.Parse(dataFile)) == null)
                             return true;
                     }
                 }
@@ -774,7 +774,7 @@ namespace pwiz.Skyline.FileUI.PeptideSearch
             // Import results only on "finish"
             var namedResults =
                 ImportResultsControl.FoundResultsFiles.Select(
-                    kvp => new KeyValuePair<string, MsDataFileUri[]>(kvp.Name, new[] { new MsDataFilePath(kvp.Path) }))
+                    kvp => new KeyValuePair<string, MsDataFileUri[]>(kvp.Name, new[] { new MsDataFileLocalUri(kvp.Path) }))
                     .ToList();
 
             // Ask about lockmass correction, if needed - lockmass settings in namedResults will be updated by this call as needed

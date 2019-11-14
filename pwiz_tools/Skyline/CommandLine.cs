@@ -1334,7 +1334,7 @@ namespace pwiz.Skyline
 
         private ChromatogramSet RemoveErrors(ChromatogramSet set, MultiProgressStatus multiStatus)
         {
-            var dataFiles = set.MSDataFilePaths.ToList();
+            var dataFiles = set.MSDataFileUris.ToList();
             int originalCount = dataFiles.Count;
             for (int i = originalCount - 1; i >= 0; i--)
             {
@@ -1476,7 +1476,7 @@ namespace pwiz.Skyline
                 {   
                     // We are appending to an existing replicate in the document.
                     // Remove files that are already associated with the replicate
-                    var chromatFilePaths = new HashSet<MsDataFileUri>(chromatogram.MSDataFilePaths.Select(path => path.ToLower()));
+                    var chromatFilePaths = new HashSet<MsDataFileUri>(chromatogram.MSDataFileUris.Select(path => path.ToLower()));
 
                     var filePaths = namedPaths.Value;
                     var filePathsNotInRepl = new List<MsDataFileUri>(filePaths.Length);
@@ -1531,7 +1531,7 @@ namespace pwiz.Skyline
                         _doc.Settings.MeasuredResults.TryGetChromatogramSet(replicateName, out chromatogram, out index);
 
                         string replicateFileString = replicateFile.ToString();
-                        if (chromatogram.MSDataFilePaths.Any(filePath => StringComparer.OrdinalIgnoreCase.Equals(filePath.ToString(), replicateFileString)))
+                        if (chromatogram.MSDataFileUris.Any(filePath => StringComparer.OrdinalIgnoreCase.Equals(filePath.ToString(), replicateFileString)))
                         {
                             _out.WriteLine(Resources.CommandLine_ImportResultsFile__0______1___Note__The_file_has_already_been_imported__Ignoring___, replicateName, replicateFile);
                         }
@@ -1699,7 +1699,7 @@ namespace pwiz.Skyline
             {
                 foreach (var file in missingResultsFiles)
                 {
-                    if (doc.Settings.HasResults && doc.Settings.MeasuredResults.FindMatchingMSDataFile(new MsDataFilePath(file)) != null)
+                    if (doc.Settings.HasResults && doc.Settings.MeasuredResults.FindMatchingMSDataFile(new MsDataFileId(file)) != null)
                         continue;
 
                     _out.WriteLine(Resources.CommandLine_ImportSearch_Warning__Unable_to_locate_results_file___0__, Path.GetFileName(file));
@@ -1826,10 +1826,10 @@ namespace pwiz.Skyline
             var listNamedPaths = new List<KeyValuePair<string, MsDataFileUri[]>>();
             foreach (var resultFile in import.GetFoundResultsFiles())
             {
-                var filePath = new MsDataFilePath(resultFile.Path);
-                if (!_doc.Settings.HasResults || _doc.Settings.MeasuredResults.FindMatchingMSDataFile(filePath) == null)
+                var fileUri = new MsDataFileLocalUri(resultFile.Path);
+                if (!_doc.Settings.HasResults || _doc.Settings.MeasuredResults.FindMatchingMSDataFile(fileUri.GetMsDataFileId()) == null)
                 {
-                    listNamedPaths.Add(new KeyValuePair<string, MsDataFileUri[]>(resultFile.Name, new [] {filePath}));
+                    listNamedPaths.Add(new KeyValuePair<string, MsDataFileUri[]>(resultFile.Name, new [] {fileUri}));
                 }
             }
 
@@ -2364,7 +2364,7 @@ namespace pwiz.Skyline
         // temporary files that, for some reason, do not get deleted.
         private bool CanReadFile(MsDataFileUri msDataFileUri)
         {
-            MsDataFilePath msDataFilePath = msDataFileUri as MsDataFilePath;
+            MsDataFileLocalUri msDataFilePath = msDataFileUri as MsDataFileLocalUri;
             if (null == msDataFilePath)
             {
                 return true;
@@ -2506,7 +2506,7 @@ namespace pwiz.Skyline
             }
 
             var filesToExport = Document.Settings.HasResults
-                ? Document.Settings.MeasuredResults.MSDataFilePaths.Select(f => f.GetFileName()).ToList()
+                ? Document.Settings.MeasuredResults.MSDataFileIds.Select(f => f.GetFileName()).ToList()
                 : new List<string>();
             if (filesToExport.Count == 0)
             {
@@ -3255,7 +3255,7 @@ namespace pwiz.Skyline
                 if (indexChrom != -1)
                 {
                     var chromatogram = listChromatograms[indexChrom];
-                    var paths = chromatogram.MSDataFilePaths;
+                    var paths = chromatogram.MSDataFileUris;
                     var listFilePaths = paths.ToList();
                     listFilePaths.Add(dataFile);
                     listChromatograms[indexChrom] = chromatogram.ChangeMSDataFilePaths(listFilePaths);

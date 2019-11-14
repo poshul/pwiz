@@ -580,7 +580,7 @@ namespace pwiz.SkylineTestFunctional
                 importResultsDlg.NamedPathSets = new[]
                 {
                     new KeyValuePair<string, MsDataFileUri[]>("sMRM rough tune",
-                        new MsDataFileUri[] {new MsDataFilePath(wiffFile, "sMRM rough tune", 2, LockMassParameters.EMPTY)})
+                        new MsDataFileUri[] {new MsDataFileLocalUri(wiffFile, "sMRM rough tune", 2, LockMassParameters.EMPTY)})
                 };
             });
             OkDialog(importResultsDlg, importResultsDlg.OkDialog);
@@ -631,7 +631,7 @@ namespace pwiz.SkylineTestFunctional
                 importResultsDlgMedium.NamedPathSets = new[]
                 {
                     new KeyValuePair<string, MsDataFileUri[]>("sMRM rmed tune",
-                        new MsDataFileUri[] {new MsDataFilePath(wiffFile, "sMRM rmed tune", 3, LockMassParameters.EMPTY)})
+                        new MsDataFileUri[] {new MsDataFileLocalUri(wiffFile, "sMRM rmed tune", 3, LockMassParameters.EMPTY)})
                 };
             });
             OkDialog(importResultsDlgMedium, importResultsDlgMedium.OkDialog);
@@ -661,7 +661,7 @@ namespace pwiz.SkylineTestFunctional
                 importResultsDlgFine.NamedPathSets = new[]
                 {
                     new KeyValuePair<string, MsDataFileUri[]>("sMRM fine tune",
-                        new MsDataFileUri[] {new MsDataFilePath(wiffFile, "sMRM fine tune", 4, LockMassParameters.EMPTY)})
+                        new MsDataFileUri[] {new MsDataFileLocalUri(wiffFile, "sMRM fine tune", 4, LockMassParameters.EMPTY)})
                 };
             });
             OkDialog(importResultsDlgFine, importResultsDlgFine.OkDialog);

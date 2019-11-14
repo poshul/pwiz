@@ -88,16 +88,16 @@ namespace pwiz.Skyline.FileUI
 
             TreeNode desktopNode = tv.Nodes.Add(@"Desktop",
                 Resources.OpenDataSourceDialog_OpenDataSourceDialog_Desktop, (int) ImageIndex.Desktop, (int) ImageIndex.Desktop );
-            desktopNode.Tag = new MsDataFilePath(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory));
+            desktopNode.Tag = new MsDataFileLocalUri(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory));
             lookInComboBox.Items.Add( desktopNode );
             TreeNode lookInNode = desktopNode.Nodes.Add(@"My Documents",
                 Resources.OpenDataSourceDialog_OpenDataSourceDialog_My_Documents, (int) ImageIndex.MyDocuments, (int) ImageIndex.MyDocuments );
-            lookInNode.Tag = new MsDataFilePath(Environment.GetFolderPath(Environment.SpecialFolder.Personal));
+            lookInNode.Tag = new MsDataFileLocalUri(Environment.GetFolderPath(Environment.SpecialFolder.Personal));
             lookInComboBox.Items.Add( lookInNode );
             _myComputerIndex = lookInComboBox.Items.Count;
             TreeNode myComputerNode = desktopNode.Nodes.Add(@"My Computer",
                 Resources.OpenDataSourceDialog_OpenDataSourceDialog_My_Computer, (int) ImageIndex.MyComputer, (int) ImageIndex.MyComputer );
-            myComputerNode.Tag = new MsDataFilePath(Environment.GetFolderPath(Environment.SpecialFolder.MyComputer));
+            myComputerNode.Tag = new MsDataFileLocalUri(Environment.GetFolderPath(Environment.SpecialFolder.MyComputer));
             
             lookInComboBox.Items.Add( myComputerNode );
             _specialFolderCount = lookInComboBox.Items.Count;
@@ -110,7 +110,7 @@ namespace pwiz.Skyline.FileUI
 
         public new DialogResult ShowDialog(IWin32Window owner)
         {
-            CurrentDirectory = InitialDirectory ?? new MsDataFilePath(Environment.CurrentDirectory);
+            CurrentDirectory = InitialDirectory ?? new MsDataFileLocalUri(Environment.CurrentDirectory);
             return base.ShowDialog(owner);
         }
 
@@ -242,7 +242,7 @@ namespace pwiz.Skyline.FileUI
         private SourceInfo getSourceInfo( DirectoryInfo dirInfo )
         {
             string type = DataSourceUtil.GetSourceType(dirInfo);
-            SourceInfo sourceInfo = new SourceInfo(new MsDataFilePath(dirInfo.FullName))
+            SourceInfo sourceInfo = new SourceInfo(new MsDataFileLocalUri(dirInfo.FullName))
             {
                 type = type,
                 imageIndex = (DataSourceUtil.IsFolderType(type) ? ImageIndex.Folder : ImageIndex.MassSpecFile),
@@ -272,7 +272,7 @@ namespace pwiz.Skyline.FileUI
         private SourceInfo getSourceInfo(FileInfo fileInfo)
         {
             string type = DataSourceUtil.GetSourceType(fileInfo);
-            SourceInfo sourceInfo = new SourceInfo(new MsDataFilePath(fileInfo.FullName))
+            SourceInfo sourceInfo = new SourceInfo(new MsDataFileLocalUri(fileInfo.FullName))
                                         {
                                             type = type,
                                             imageIndex = (DataSourceUtil.IsUnknownType(type) ? ImageIndex.UnknownFile : ImageIndex.MassSpecFile),
@@ -300,7 +300,7 @@ namespace pwiz.Skyline.FileUI
             listView.Items.Clear();
 
             var listSourceInfo = new List<SourceInfo>();
-            if (null == directory || directory is MsDataFilePath && string.IsNullOrEmpty(((MsDataFilePath) directory).FilePath))
+            if (null == directory || directory is MsDataFileLocalUri && string.IsNullOrEmpty(((MsDataFileLocalUri) directory).FilePath))
             {
                 foreach (DriveInfo driveInfo in DriveInfo.GetDrives())
                 {
@@ -345,7 +345,7 @@ namespace pwiz.Skyline.FileUI
                     if (label != string.Empty)
                         name = string.Format(@"{0} ({1})", label, name);
 
-                    listSourceInfo.Add(new SourceInfo(new MsDataFilePath(driveInfo.RootDirectory.FullName))
+                    listSourceInfo.Add(new SourceInfo(new MsDataFileLocalUri(driveInfo.RootDirectory.FullName))
                     {
                         type = DataSourceUtil.FOLDER_TYPE,
                         imageIndex = imageIndex,
@@ -407,9 +407,9 @@ namespace pwiz.Skyline.FileUI
                     }
                 }
             }
-            else if (directory is MsDataFilePath)
+            else if (directory is MsDataFileLocalUri)
             {
-                MsDataFilePath msDataFilePath = (MsDataFilePath) directory;
+                MsDataFileLocalUri msDataFilePath = (MsDataFileLocalUri) directory;
                 DirectoryInfo dirInfo = new DirectoryInfo(msDataFilePath.FilePath);
 
                 try
@@ -536,9 +536,9 @@ namespace pwiz.Skyline.FileUI
             TreeNode myComputerNode = (TreeNode) lookInComboBox.Items[_myComputerIndex];
             DirectoryInfo dirInfo = null;
 
-            if (directory is MsDataFilePath)
+            if (directory is MsDataFileLocalUri)
             {
-                MsDataFilePath msDataFilePath = (MsDataFilePath) directory;
+                MsDataFileLocalUri msDataFilePath = (MsDataFileLocalUri) directory;
                 if (!string.IsNullOrEmpty(msDataFilePath.FilePath))
                 {
                     dirInfo = new DirectoryInfo(msDataFilePath.FilePath);
@@ -603,12 +603,12 @@ namespace pwiz.Skyline.FileUI
                                                                   : sublabel,
                                                               (int) imageIndex,
                                                               (int) imageIndex);
-                driveNode.Tag = new MsDataFilePath(sublabel);
+                driveNode.Tag = new MsDataFileLocalUri(sublabel);
                 lookInComboBox.Items.Insert( _specialFolderCount + driveCount - 1, driveNode );
 
                 if( dirInfo != null && sublabel == dirInfo.Root.Name )
                 {
-                    List<string> branches = new List<string>( ((MsDataFilePath) directory).FilePath.Split( new[] {
+                    List<string> branches = new List<string>( ((MsDataFileLocalUri) directory).FilePath.Split( new[] {
                                                  Path.DirectorySeparatorChar,
                                                  Path.AltDirectorySeparatorChar },
                                                  StringSplitOptions.RemoveEmptyEntries ) );
@@ -617,7 +617,7 @@ namespace pwiz.Skyline.FileUI
                     {
                         ++driveCount;
                         pathNode = pathNode.Nodes.Add( branches[i], branches[i], 8, 8 );
-                        pathNode.Tag = new MsDataFilePath(String.Join(Path.DirectorySeparatorChar.ToString(CultureInfo.InvariantCulture),
+                        pathNode.Tag = new MsDataFileLocalUri(String.Join(Path.DirectorySeparatorChar.ToString(CultureInfo.InvariantCulture),
                                                     branches.GetRange( 0, i + 1 ).ToArray() ));
                         lookInComboBox.Items.Insert(_specialFolderCount + driveCount - 1, pathNode);
                     }
@@ -733,7 +733,7 @@ namespace pwiz.Skyline.FileUI
                 {
                     if (triedAddingDirectory)
                         break;
-                    MsDataFilePath currentDirectoryPath = CurrentDirectory as MsDataFilePath;
+                    MsDataFileLocalUri currentDirectoryPath = CurrentDirectory as MsDataFileLocalUri;
                     if (null == currentDirectoryPath)
                     {
                         break;
@@ -798,13 +798,13 @@ namespace pwiz.Skyline.FileUI
         private void upOneLevelButton_Click( object sender, EventArgs e )
         {
             MsDataFileUri parent = null;
-            var dataFilePath = _currentDirectory as MsDataFilePath;
+            var dataFilePath = _currentDirectory as MsDataFileLocalUri;
             if (dataFilePath != null && !string.IsNullOrEmpty(dataFilePath.FilePath))
             {
                 DirectoryInfo parentDirectory = Directory.GetParent(dataFilePath.FilePath);
                 if (parentDirectory != null)
                 {
-                    parent = new MsDataFilePath(parentDirectory.FullName);
+                    parent = new MsDataFileLocalUri(parentDirectory.FullName);
                 }
             }
             else
@@ -890,17 +890,17 @@ namespace pwiz.Skyline.FileUI
 
         private void desktopButton_Click( object sender, EventArgs e )
         {
-            CurrentDirectory = new MsDataFilePath(Environment.GetFolderPath( Environment.SpecialFolder.DesktopDirectory ));
+            CurrentDirectory = new MsDataFileLocalUri(Environment.GetFolderPath( Environment.SpecialFolder.DesktopDirectory ));
         }
 
         private void myDocumentsButton_Click( object sender, EventArgs e )
         {
-            CurrentDirectory = new MsDataFilePath(Environment.GetFolderPath( Environment.SpecialFolder.MyDocuments ));
+            CurrentDirectory = new MsDataFileLocalUri(Environment.GetFolderPath( Environment.SpecialFolder.MyDocuments ));
         }
 
         private void myComputerButton_Click( object sender, EventArgs e )
         {
-            CurrentDirectory = new MsDataFilePath(Environment.GetFolderPath(Environment.SpecialFolder.MyComputer));
+            CurrentDirectory = new MsDataFileLocalUri(Environment.GetFolderPath(Environment.SpecialFolder.MyComputer));
         }
 
 //        private void myNetworkPlacesButton_Click( object sender, EventArgs e )
@@ -963,10 +963,10 @@ namespace pwiz.Skyline.FileUI
             var selectedItem = (TreeNode) lookInComboBox.SelectedItem;
             var prevDirectory = CurrentDirectory;
             MsDataFileUri msDataFileUri = (MsDataFileUri) selectedItem.Tag;
-            if (msDataFileUri is MsDataFilePath)
+            if (msDataFileUri is MsDataFileLocalUri)
             {
                 bool isReady = false;
-                string location = ((MsDataFilePath) msDataFileUri).FilePath;
+                string location = ((MsDataFileLocalUri) msDataFileUri).FilePath;
                                     foreach (var drivePair in _driveReadiness)
                     {
                         if (location.StartsWith(drivePair.Key))
@@ -1076,7 +1076,7 @@ namespace pwiz.Skyline.FileUI
 
         private void recentDocumentsButton_Click(object sender, EventArgs e)
         {
-            CurrentDirectory = new MsDataFilePath(Environment.GetFolderPath(Environment.SpecialFolder.Recent));
+            CurrentDirectory = new MsDataFileLocalUri(Environment.GetFolderPath(Environment.SpecialFolder.Recent));
         }
 
         public bool WaitingForData { get { return _waitingForData; } }

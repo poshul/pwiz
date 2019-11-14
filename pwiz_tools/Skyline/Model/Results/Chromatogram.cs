@@ -133,7 +133,7 @@ namespace pwiz.Skyline.Model.Results
             if (!settings.HasResults || settings.MeasuredResults.IsLoaded)
                 return true;
 
-            var dataFilePath = tag as MsDataFileUri;
+            var dataFilePath = tag as MsDataFileId;
             if (dataFilePath != null)
             {
                 // Cancelled if file is no longer part of the document, or it is
@@ -340,7 +340,7 @@ namespace pwiz.Skyline.Model.Results
 
         public ChromatogramSet(string name,
             IEnumerable<string> msDataFileNames)
-            : this(name, msDataFileNames.Select(file => new MsDataFilePath(file)))
+            : this(name, msDataFileNames.Select(file => new MsDataFileLocalUri(file)))
         {
             
         }
@@ -369,11 +369,11 @@ namespace pwiz.Skyline.Model.Results
             }
         }
 
-        public bool ContainsFile(MsDataFileUri filePath)
+        public bool ContainsFile(MsDataFileId filePath)
         {
             for (int i = 0; i < _msDataFileInfo.Count; i++)
             {
-                if (Equals(_msDataFileInfo[i].FilePath.ToFileId(), filePath.ToFileId()))
+                if (Equals(_msDataFileInfo[i].FilePath, filePath))
                     return true;
             }
             return false;
@@ -381,7 +381,8 @@ namespace pwiz.Skyline.Model.Results
 
         public int FileCount { get { return _msDataFileInfo.Count; } }
 
-        public IEnumerable<MsDataFileUri> MSDataFilePaths { get { return MSDataFileInfos.Select(info => info.FilePath); } }
+        public IEnumerable<MsDataFileUri> MSDataFileUris { get { return MSDataFileInfos.Select(info => info.FileUri); } }
+        public IEnumerable<MsDataFileId> MSDataFileIds { get { return MSDataFileInfos.Select(info => info.FilePath); } }
 
         public bool IsLoaded { get { return !MSDataFileInfos.Contains(info => !info.FileWriteTime.HasValue); } }
 
@@ -391,7 +392,7 @@ namespace pwiz.Skyline.Model.Results
             {
                 return false;
             }
-            return MSDataFilePaths.All(measuredResults.IsCachedFile);
+            return MSDataFileIds.All(measuredResults.IsCachedFile);
         }
 
         public string IsLoadedExplained() // For test and debug purposes, gives a descriptive string for IsLoaded failure
@@ -412,10 +413,10 @@ namespace pwiz.Skyline.Model.Results
 
         public ChromFileInfo GetFileInfo(ChromatogramGroupInfo chromGroupInfo)
         {
-            return GetFileInfo(chromGroupInfo.FilePath);
+            return GetFileInfo(chromGroupInfo.FileId);
         }
 
-        public ChromFileInfo GetFileInfo(MsDataFileUri filePath)
+        public ChromFileInfo GetFileInfo(MsDataFileId filePath)
         {
             return GetFileInfo(IndexOfPath(filePath));
         }
@@ -429,17 +430,17 @@ namespace pwiz.Skyline.Model.Results
             return MSDataFileInfos.IndexOf(info => ReferenceEquals(info.Id, fileId));
         }
 
-        public int IndexOfPath(MsDataFileUri filePath)
+        public int IndexOfPath(MsDataFileId filePath)
         {
-            return MSDataFileInfos.IndexOf(info => Equals(filePath.ToFileId(), info.FilePath.ToFileId()));
+            return MSDataFileInfos.IndexOf(info => Equals(filePath, info.FilePath));
         }
 
         public ChromFileInfoId FindFile(ChromatogramGroupInfo chromGroupInfo)
         {
-            return FindFile(chromGroupInfo.FilePath);
+            return FindFile(chromGroupInfo.FileId);
         }
 
-        public ChromFileInfoId FindFile(MsDataFileUri filePath)
+        public ChromFileInfoId FindFile(MsDataFileId filePath)
         {
             return GetFileId(IndexOfPath(filePath));
         }
@@ -481,12 +482,12 @@ namespace pwiz.Skyline.Model.Results
             // Be sure to preserve existing file info objects
             var dictPathToFileInfo = MSDataFileInfos.ToDictionary(info => info.FilePath);
             var listFileInfos = new List<ChromFileInfo>();
-            foreach (var filePath in prop)
+            foreach (var fileUri in prop)
             {
                 ChromFileInfo chromFileInfo;
-                if (!dictPathToFileInfo.TryGetValue(filePath, out chromFileInfo))
+                if (!dictPathToFileInfo.TryGetValue(fileUri.GetMsDataFileId(), out chromFileInfo))
                 {
-                    chromFileInfo = new ChromFileInfo(filePath);
+                    chromFileInfo = new ChromFileInfo(fileUri);
                 }
                 listFileInfos.Add(chromFileInfo);
             }
@@ -532,17 +533,17 @@ namespace pwiz.Skyline.Model.Results
             {
                 fileInfos[i] = MSDataFileInfos[i];
                 
-                var path = fileInfos[i].FilePath;
+                var path = fileInfos[i].FileUri;
 
                 ChromCachedFile fileInfo;
-                if (cachedPaths.TryGetValue(path.ToFileId(), out fileInfo))
+                if (cachedPaths.TryGetValue(path.GetMsDataFileId(), out fileInfo))
                     fileInfos[i] = fileInfos[i].ChangeInfo(fileInfo);
                 else if (cachedFileNames == null || cachedFileNames.Contains(path.GetFileName()))
                 {
                     // If the name but not the file was found, check for an
                     // existing file in the cache file's directory.
                     var dataFilePath = GetExistingDataFilePath(cachePath, path);
-                    if (dataFilePath != null && cachedPaths.TryGetValue(dataFilePath.ToFileId(), out fileInfo))
+                    if (dataFilePath != null && cachedPaths.TryGetValue(dataFilePath.GetMsDataFileId(), out fileInfo))
                         fileInfos[i] = fileInfos[i].ChangeInfo(fileInfo);
                 }
             }
@@ -595,7 +596,7 @@ namespace pwiz.Skyline.Model.Results
 
         public static MsDataFileUri GetExistingDataFilePath(string cachePath, MsDataFileUri msDataFileUri)
         {
-            MsDataFilePath msDataFilePath = msDataFileUri as MsDataFilePath;
+            MsDataFileLocalUri msDataFilePath = msDataFileUri as MsDataFileLocalUri;
             if (null == msDataFilePath)
             {
                 return msDataFileUri;
@@ -612,7 +613,7 @@ namespace pwiz.Skyline.Model.Results
         /// <param name="dataFilePath">A full MSDataFile path, potentially including a sample part</param>
         /// <param name="dataFilePathPart">A file path only to an existing file</param>
         /// <returns>A full MSDataFile path, potentially including a sample part, to an existing file, or null if no file is found</returns>
-        public static MsDataFilePath GetExistingDataFilePath(string cachePath, MsDataFilePath dataFilePath, out string dataFilePathPart)
+        public static MsDataFileLocalUri GetExistingDataFilePath(string cachePath, MsDataFileLocalUri dataFilePath, out string dataFilePathPart)
         {
             // Check file (directory for Waters) existence, because ProteoWizard can hang on this
             if (File.Exists(dataFilePath.FilePath) || Directory.Exists(dataFilePath.FilePath))
@@ -793,7 +794,7 @@ namespace pwiz.Skyline.Model.Results
             {
                 writer.WriteStartElement(EL.sample_file);
                 writer.WriteAttribute(ATTR.id, GetOrdinalSaveId(i++));
-                writer.WriteAttribute(ATTR.file_path, fileInfo.FilePath);
+                writer.WriteAttribute(ATTR.file_path, fileInfo.FileUri);
                 writer.WriteAttribute(ATTR.sample_name, fileInfo.FilePath.GetSampleOrFileName());
                 writer.WriteAttributeIfString(ATTR.sample_id, fileInfo.SampleId);
                 writer.WriteAttributeIfString(ATTR.instrument_serial_number, fileInfo.InstrumentSerialNumber);
@@ -927,24 +928,25 @@ namespace pwiz.Skyline.Model.Results
 
     public sealed class ChromFileInfo : DocNode, IPathContainer
     {
-        public ChromFileInfo(MsDataFileUri filePath)
+        public ChromFileInfo(MsDataFileUri fileUri)
             : base(new ChromFileInfoId())
         {
-            RemoteUrl remoteUrl = filePath as RemoteUrl;
+            RemoteUrl remoteUrl = fileUri as RemoteUrl;
             if (null != remoteUrl)
             {
                 FileWriteTime = remoteUrl.ModifiedTime;
-                filePath = remoteUrl.ChangeModifiedTime(null);
+                fileUri = remoteUrl.ChangeModifiedTime(null);
             }
-            FilePath = filePath;
+            FileUri = fileUri;
             InstrumentInfoList = new MsInstrumentConfigInfo[0];
         }
 
         private ImmutableList<MsInstrumentConfigInfo> _instrumentInfoList;
 
-        public ChromFileInfoId FileId { get { return (ChromFileInfoId) Id; }}
+        public ChromFileInfoId FileId { get { return (ChromFileInfoId)Id; } }
         public int FileIndex { get { return Id.GlobalIndex; } }
-        public MsDataFileUri FilePath { get; private set; }
+        public MsDataFileUri FileUri { get; private set; }
+        public MsDataFileId FilePath => FileUri.GetMsDataFileId();
         public DateTime? FileWriteTime { get; private set; }
         public DateTime? RunStartTime { get; private set; }
         public double MaxRetentionTime { get; private set; }
@@ -971,11 +973,6 @@ namespace pwiz.Skyline.Model.Results
 
         #region Property change methods
 
-        public ChromFileInfo ChangeFilePath(MsDataFileUri prop)
-        {
-            return ChangeProp(ImClone(this), im => im.FilePath = prop);
-        }
-
         public ChromFileInfo ChangeHasMidasSpectra(bool prop)
         {
             return ChangeProp(ImClone(this), im => im.HasMidasSpectra = prop);
@@ -990,7 +987,7 @@ namespace pwiz.Skyline.Model.Results
         {
             return ChangeProp(ImClone(this), im =>
                                                  {
-                                                     im.FilePath = fileInfo.FilePath;
+                                                     im.FileUri = fileInfo.FileUri;
                                                      im.FileWriteTime = fileInfo.FileWriteTime;
                                                      im.RunStartTime = fileInfo.RunStartTime;
                                                      im.InstrumentInfoList = fileInfo.InstrumentInfoList.ToArray();
@@ -1131,7 +1128,7 @@ namespace pwiz.Skyline.Model.Results
     /// 
     /// It's now (v3.5) being expanded to include other information needed to reproducably 
     /// read raw data - lockmass settings, for example.  Probably ought to be moved out to 
-    /// MSDataFileUri, really
+    /// MsDataFileId, really
     /// 
     /// </summary>
     public static class SampleHelp
@@ -1229,9 +1226,9 @@ namespace pwiz.Skyline.Model.Results
             return path.Split('|')[1];
         }
 
-        public static string GetPathSampleNamePart(MsDataFileUri msDataFileUri)
+        public static string GetPathSampleNamePart(MsDataFileId MsDataFileId)
         {
-            return msDataFileUri.GetSampleName();
+            return MsDataFileId.GetSampleName();
         }
 
         public static int GetPathSampleIndexPart(string path)
@@ -1258,9 +1255,9 @@ namespace pwiz.Skyline.Model.Results
             return Path.GetFileName(GetPathFilePart(path));
         }
 
-        public static string GetFileName(MsDataFileUri msDataFileUri)
+        public static string GetFileName(MsDataFileId MsDataFileId)
         {
-            return msDataFileUri.GetFileName();
+            return MsDataFileId.GetFileName();
         }
 
         public static bool GetCentroidMs1(string path)

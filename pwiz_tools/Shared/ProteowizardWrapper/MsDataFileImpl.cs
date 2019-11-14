@@ -566,7 +566,7 @@ namespace pwiz.ProteowizardWrapper
             return GetMaxIonMobilityInList();
         }
 
-        public bool HasCombinedIonMobilitySpectra => _ionMobilitySpectrumList != null && _ionMobilitySpectrumList.hasCombinedIonMobility();
+        public bool HasCombinedIonMobilitySpectra => IonMobilityUnits != eIonMobilityUnits.none &&  _ionMobilitySpectrumList != null && _ionMobilitySpectrumList.hasCombinedIonMobility();
 
         /// <summary>
         /// Gets the value of the MS_sample_name CV param of first sample in the MSData object, or null if there is no sample information.

@@ -184,11 +184,11 @@ namespace pwiz.Skyline.FileUI
                     if (!CanCreateMultiInjectionMethods())
                         return;
 
-                    NamedPathSets = GetDataSourcePathsFile(comboName.SelectedItem.ToString());
+                    NamedPathSets = GetDataSourceUrisFile(comboName.SelectedItem.ToString());
                 }
                 else if (radioCreateMultiple.Checked)
                 {
-                    NamedPathSets = GetDataSourcePathsFile(null);
+                    NamedPathSets = GetDataSourceUrisFile(null);
                 }
                 else if (radioCreateMultipleMulti.Checked)
                 {
@@ -212,7 +212,7 @@ namespace pwiz.Skyline.FileUI
                         return;
                     }
 
-                    NamedPathSets = GetDataSourcePathsFile(name);
+                    NamedPathSets = GetDataSourceUrisFile(name);
 
                     if (NamedPathSets == null)
                         return;
@@ -313,11 +313,11 @@ namespace pwiz.Skyline.FileUI
             return true;
         }
 
-        public KeyValuePair<string, MsDataFileUri[]>[] GetDataSourcePathsFile(string name)
+        public KeyValuePair<string, MsDataFileUri[]>[] GetDataSourceUrisFile(string name)
         {
             CheckDisposed();
 
-            var dataSources = GetDataSourcePaths(this, _documentSavedPath);
+            var dataSources = GetDataSourceUris(this, _documentSavedPath);
             if (dataSources == null || dataSources.Length == 0)
             {
                 // Above call will have shown a message if necessary, or not if canceled
@@ -330,7 +330,7 @@ namespace pwiz.Skyline.FileUI
             return GetDataSourcePathsFileReplicates(dataSources);
         }
 
-        public static MsDataFileUri[] GetDataSourcePaths(Control parent, string documentSavedPath)
+        public static MsDataFileUri[] GetDataSourceUris(Control parent, string documentSavedPath)
         {
             using (var dlgOpen = new OpenDataSourceDialog(Settings.Default.RemoteAccountList)
                 {
@@ -342,7 +342,7 @@ namespace pwiz.Skyline.FileUI
                 string initialDir = Path.GetDirectoryName(documentSavedPath) ?? Settings.Default.SrmResultsDirectory;
                 if (string.IsNullOrEmpty(initialDir))
                     initialDir = null;
-                dlgOpen.InitialDirectory = new MsDataFilePath(initialDir);
+                dlgOpen.InitialDirectory = new MsDataFileLocalUri(initialDir);
                 // Use saved source type, if there is one.
                 string sourceType = Settings.Default.SrmResultsSourceType;
                 if (!string.IsNullOrEmpty(sourceType))
@@ -371,7 +371,7 @@ namespace pwiz.Skyline.FileUI
             var listPaths = new List<MsDataFileUri>();
             foreach (var dataSource in dataSources)
             {
-                MsDataFilePath msDataFilePath = dataSource as MsDataFilePath;
+                var msDataFilePath = dataSource as MsDataFileLocalUri;
                 // Only .wiff files currently support multiple samples per file.
                 // Keep from doing the extra work on other types.
                 if (null != msDataFilePath && DataSourceUtil.IsWiffFile(msDataFilePath.FilePath))
@@ -392,7 +392,7 @@ namespace pwiz.Skyline.FileUI
             var listNamedPaths = new List<KeyValuePair<string, MsDataFileUri[]>>();
             foreach (var dataSource in dataSources)
             {
-                MsDataFilePath msDataFilePath = dataSource as MsDataFilePath;
+                MsDataFileLocalUri msDataFilePath = dataSource as MsDataFileLocalUri;
                 // Only .wiff files currently support multiple samples per file.
                 // Keep from doing the extra work on other types.
                 if (null != msDataFilePath && DataSourceUtil.IsWiffFile(msDataFilePath.FilePath))
@@ -420,7 +420,7 @@ namespace pwiz.Skyline.FileUI
             return listNamedPaths.ToArray();
         }
 
-        private MsDataFilePath[] GetWiffSubPaths(string filePath)
+        private MsDataFileLocalUri[] GetWiffSubPaths(string filePath)
         {
             using (var longWaitDlg = new LongWaitDlg
                 {

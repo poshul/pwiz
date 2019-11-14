@@ -125,7 +125,7 @@ namespace pwiz.Skyline.Controls.Graphs
                                 _nextRetry = 0;
                             if (control.Error != null)
                             {
-                                ChromatogramManager.RemoveFile(control.FilePath.ToFileId());
+                                ChromatogramManager.RemoveFile(control.FilePath);
                                 Retry(control.Status);
                                 break;
                             }
@@ -199,7 +199,7 @@ namespace pwiz.Skyline.Controls.Graphs
             }
             else
             {
-                graphChromatograms.Key = SelectedControl.FilePath.ToFileId();
+                graphChromatograms.Key = SelectedControl.FilePath;
                 ShowControl(graphChromatograms);
             }
         }
@@ -222,7 +222,7 @@ namespace pwiz.Skyline.Controls.Graphs
 
         public class FileStatus
         {
-            public MsDataFileUri FilePath { get; set; }
+            public MsDataFileId FilePath { get; set; }
             public int Progress { get; set; }
             public string Error { get; set; }
         }
@@ -447,8 +447,8 @@ namespace pwiz.Skyline.Controls.Graphs
             List<FileProgressControl> controlsToAdd = new List<FileProgressControl>();
             foreach (var loadingStatus in status.ProgressList)
             {
-                var decoratedFilePath = loadingStatus.DecoratedFilePath;
-                var progressControl = FindProgressControl(decoratedFilePath.ToFileId());
+                var decoratedFilePath = loadingStatus.FilePath;
+                var progressControl = FindProgressControl(decoratedFilePath);
                 if (progressControl != null)
                     continue;
 
@@ -476,7 +476,7 @@ namespace pwiz.Skyline.Controls.Graphs
             flowFileStatus.Controls.AddRange(controlsToAdd.ToArray());
             foreach (var control in controlsToAdd)
             {
-                _fileProgressControls.Add(control.FilePath.ToFileId(), control);
+                _fileProgressControls.Add(control.FilePath, control);
             }
         }
 
@@ -492,23 +492,16 @@ namespace pwiz.Skyline.Controls.Graphs
                         filesWithStatus = new HashSet<MsDataFileId>(status.ProgressList
                             .Select(loadingStatus => loadingStatus.FilePath));
                     }
-                    if (!filesWithStatus.Contains(progressControl.FilePath.ToFileId()))
+                    if (!filesWithStatus.Contains(progressControl.FilePath))
                         progressControl.IsCanceled = true;
                 }
             }
         }
 
-        private FileProgressControl FindProgressControl(MsDataFileUri filePath)
+        private FileProgressControl FindProgressControl(MsDataFileId filePath)
         {
             FileProgressControl fileProgressControl;
-            _fileProgressControls.TryGetValue(filePath.ToFileId(), out fileProgressControl);
-            return fileProgressControl;
-        }
-
-        private FileProgressControl FindProgressControl(MsDataFileId fileKey)
-        {
-            FileProgressControl fileProgressControl;
-            _fileProgressControls.TryGetValue(fileKey, out fileProgressControl);
+            _fileProgressControls.TryGetValue(filePath, out fileProgressControl);
             return fileProgressControl;
         }
 
@@ -521,7 +514,7 @@ namespace pwiz.Skyline.Controls.Graphs
             for (int i = 0; i < flowFileStatus.Controls.Count; i++)
             {
                 var control = (FileProgressControl) flowFileStatus.Controls[i];
-                if (control.FilePath.ToFileId().Equals(status.FilePath))
+                if (control.FilePath.Equals(status.FilePath))
                 {
                     control.Reset();
                     Selected = i;
@@ -536,7 +529,7 @@ namespace pwiz.Skyline.Controls.Graphs
                     {
                         var oldResults = doc.Settings.MeasuredResults ??
                                          new MeasuredResults(new ChromatogramSet[0]);
-                        var newResults = oldResults.AddDataFile(status.DecoratedFilePath, status.ReplicateNames);
+                        var newResults = oldResults.AddDataFile(status.FileUri, status.ReplicateNames);
                         return doc.ChangeMeasuredResults(newResults, monitor);
                     });
             });

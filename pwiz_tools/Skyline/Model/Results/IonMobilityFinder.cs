@@ -85,7 +85,7 @@ namespace pwiz.Skyline.Model.Results
             if (_document.Settings.MeasuredResults == null)
                 return measured;
 
-            var filepaths = _document.Settings.MeasuredResults.MSDataFilePaths.ToArray();
+            var filepaths = _document.Settings.MeasuredResults.MSDataFileUris.ToArray();
             _totalSteps = filepaths.Length * _document.MoleculeTransitionGroupCount;
             if (_totalSteps == 0)
                 return measured;
@@ -174,14 +174,14 @@ namespace pwiz.Skyline.Model.Results
         }
 
         // Returns false on cancellation
-        private bool ProcessFile(MsDataFileUri filePath)
+        private bool ProcessFile(MsDataFileUri fileUri)
         {
             var results = _document.Settings.MeasuredResults;
-            if (!results.MSDataFilePaths.Contains(filePath))
+            if (!results.MSDataFileIds.Contains(fileUri.GetMsDataFileId()))
                 return true; // Nothing to do
             if (_progressStatus != null)
             {
-                _progressStatus = _progressStatus.ChangeMessage(filePath.GetFileName());
+                _progressStatus = _progressStatus.ChangeMessage(fileUri.GetFileName());
             }
             _currentDisplayedTransitionGroupDocNode = null;
             var tolerance = (float)_document.Settings.TransitionSettings.Instrument.MzMatchTolerance;
@@ -198,9 +198,9 @@ namespace pwiz.Skyline.Model.Results
 
                     ChromatogramGroupInfo[] chromGroupInfos;
                     results.TryLoadChromatogram(i, nodePep, nodeGroup, tolerance, true, out chromGroupInfos);
-                    foreach (var chromInfo in chromGroupInfos.Where(c => Equals(filePath, c.FilePath)))
+                    foreach (var chromInfo in chromGroupInfos.Where(c => Equals(fileUri.GetMsDataFileId(), c.FileId)))
                     {
-                        if (!ProcessChromInfo(filePath, chromInfo, pair, nodeGroup, tolerance, libKey)) 
+                        if (!ProcessChromInfo(fileUri, chromInfo, pair, nodeGroup, tolerance, libKey)) 
                             return false; // User cancelled
                     }
                 }
@@ -208,17 +208,16 @@ namespace pwiz.Skyline.Model.Results
             return true;
         }
 
-        private bool ProcessChromInfo(MsDataFileUri filePath, ChromatogramGroupInfo chromInfo, PeptidePrecursorPair pair,
+        private bool ProcessChromInfo(MsDataFileUri fileUri, ChromatogramGroupInfo chromInfo, PeptidePrecursorPair pair,
             TransitionGroupDocNode nodeGroup, float tolerance, LibKey libKey)
         {
             if (chromInfo.NumPeaks == 0)  // Due to data polarity mismatch, probably
                 return true;
             Assume.IsTrue(chromInfo.BestPeakIndex != -1);
-            var resultIndex = _document.Settings.MeasuredResults.Chromatograms.IndexOf(c => c.GetFileInfo(filePath) != null);
+            var resultIndex = _document.Settings.MeasuredResults.Chromatograms.IndexOf(c => c.GetFileInfo(fileUri.GetMsDataFileId()) != null);
             if (resultIndex == -1)
                 return true;
-            var chromFileInfo = _document.Settings.MeasuredResults.Chromatograms[resultIndex].GetFileInfo(filePath);
-            Assume.IsTrue(Equals(chromFileInfo.FilePath.GetLockMassParameters(), filePath.GetLockMassParameters()));
+            var chromFileInfo = _document.Settings.MeasuredResults.Chromatograms[resultIndex].GetFileInfo(fileUri.GetMsDataFileId());
 
             // Determine apex RT for DT measurement using most intense MS1 peak
             var apexRT = GetApexRT(nodeGroup, resultIndex, chromFileInfo, true) ??
@@ -237,7 +236,7 @@ namespace pwiz.Skyline.Model.Results
 
             for (var msLevel = 1; msLevel <= 2; msLevel++)
             {
-                if (!ProcessMSLevel(filePath, msLevel, transitionPointSets, chromInfo, apexRT, nodeGroup, libKey, tolerance))
+                if (!ProcessMSLevel(fileUri, msLevel, transitionPointSets, chromInfo, apexRT, nodeGroup, libKey, tolerance))
                     return false; // User cancelled
             }
             return true;
@@ -265,7 +264,7 @@ namespace pwiz.Skyline.Model.Results
             return apexRT;
         }
 
-        private bool ProcessMSLevel(MsDataFileUri filePath, int msLevel, IEnumerable<ChromatogramInfo> transitionPointSets,
+        private bool ProcessMSLevel(MsDataFileUri fileUri, int msLevel, IEnumerable<ChromatogramInfo> transitionPointSets,
             ChromatogramGroupInfo chromInfo, double? apexRT, TransitionGroupDocNode nodeGroup, LibKey libKey, float tolerance)
         {
             var transitions = new List<TransitionFullScanInfo>();
@@ -292,10 +291,10 @@ namespace pwiz.Skyline.Model.Results
             }
 
             IScanProvider scanProvider = new ScanProvider(_documentFilePath,
-                filePath,
+                fileUri,
                 chromSource, times, transitions.ToArray(),
                 _document.Settings.MeasuredResults,
-                () => _document.Settings.MeasuredResults.LoadMSDataFileScanIds(filePath));
+                () => _document.Settings.MeasuredResults.LoadMSDataFileScanIds(fileUri));
 
             // Across all spectra at the peak retention time, find the one with max total 
             // intensity for the mz's of interest (ie the isotopic distribution) and note its ion mobility.
@@ -320,7 +319,7 @@ namespace pwiz.Skyline.Model.Results
             if (_progressMonitor != null && !ReferenceEquals(nodeGroup, _currentDisplayedTransitionGroupDocNode))
             {
                 // Do this after scan load so first group after file switch doesn't seem laggy
-                _progressStatus = _progressStatus.ChangeMessage(TextUtil.LineSeparate(filePath.GetFileName(), nodeGroup.ToString())).
+                _progressStatus = _progressStatus.ChangeMessage(TextUtil.LineSeparate(fileUri.GetFileName(), nodeGroup.ToString())).
                                      UpdatePercentCompleteProgress(_progressMonitor, _currentStep++, _totalSteps);
                 _currentDisplayedTransitionGroupDocNode = nodeGroup;
             }

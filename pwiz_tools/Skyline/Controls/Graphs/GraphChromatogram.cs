@@ -287,7 +287,7 @@ namespace pwiz.Skyline.Controls.Graphs
         {
             if (PickedPeak != null)
             {
-                var filePath = FilePath;
+                var filePath = FileUri;
                 if (filePath == null)
                     return;
 
@@ -344,10 +344,10 @@ namespace pwiz.Skyline.Controls.Graphs
                 });
             }
             var measuredResults = DocumentUI.Settings.MeasuredResults;
-            IScanProvider scanProvider = new ScanProvider(_documentContainer.DocumentFilePath, FilePath,
+            IScanProvider scanProvider = new ScanProvider(_documentContainer.DocumentFilePath, FileUri,
                 chromatogramGroupInfo.Source, chromatogramGroupInfo.Times, transitions.ToArray(),
                 measuredResults,
-                () => measuredResults.LoadMSDataFileScanIds(FilePath));
+                () => measuredResults.LoadMSDataFileScanIds(FileUri));
             var e = new ClickedChromatogramEventArgs(
                 scanProvider,
                 transitionIndex, 
@@ -374,7 +374,7 @@ namespace pwiz.Skyline.Controls.Graphs
         {
             if (ChangedPeakBounds != null)
             {
-                var filePath = FilePath;
+                var filePath = FileUri;
                 if (filePath == null)
                     return;
 
@@ -420,7 +420,7 @@ namespace pwiz.Skyline.Controls.Graphs
         public void FirePickedSpectrum(ScaledRetentionTime retentionTime)
         {
             if (PickedSpectrum != null)
-                PickedSpectrum(this, new PickedSpectrumEventArgs(new SpectrumIdentifier(FilePath, retentionTime.MeasuredTime)));
+                PickedSpectrum(this, new PickedSpectrumEventArgs(new SpectrumIdentifier(FileUri, retentionTime.MeasuredTime)));
         }
 
         [Browsable(true)]
@@ -641,16 +641,16 @@ namespace pwiz.Skyline.Controls.Graphs
         }
 
         /// <summary>
-        /// Returns the file path for the selected file of the groups.
+        /// Returns the file uri for the selected file of the groups.
         /// </summary>
-        public MsDataFileUri FilePath
+        public MsDataFileUri FileUri
         {
             get
             {
                 var chromGroupInfos = ChromGroupInfos;
                 int i = chromGroupInfos.IndexOf(info => info != null);
 
-                return (i != -1 ? chromGroupInfos[i].FilePath : null);
+                return (i != -1 ? chromGroupInfos[i].FileUri : null);
             }
         }
 
@@ -658,7 +658,7 @@ namespace pwiz.Skyline.Controls.Graphs
         {
             get
             {
-                var filePath = FilePath;
+                var filePath = FileUri;
                 if (filePath == null)
                     return null;
                 return filePath.GetLockMassParameters();
@@ -975,7 +975,7 @@ namespace pwiz.Skyline.Controls.Graphs
                         _enableTrackingDot = enableTrackingDot;
 
                         // Should we show the scan selection point?
-                        if (_arrayChromInfo != null && Equals(_stateProvider.SelectedScanFile, FilePath) && _stateProvider.SelectedScanTransition != null)
+                        if (_arrayChromInfo != null && Equals(_stateProvider.SelectedScanFile, FileUri) && _stateProvider.SelectedScanTransition != null)
                         {
                             foreach (var graphPane in GraphPanes)
                             {
@@ -2261,13 +2261,13 @@ namespace pwiz.Skyline.Controls.Graphs
                         IsotopeLabelType labelType;
                         double[] retentionTimes;
                         if (settings.TryGetRetentionTimes(lookupSequence, group.PrecursorAdduct,
-                                                          lookupMods, FilePath, out labelType, out retentionTimes))
+                                                          lookupMods, FileUri, out labelType, out retentionTimes))
                         {
                             listTimes.AddRange(retentionTimes);
                         }
                     }
                     var selectedSpectrum = _stateProvider.SelectedSpectrum;
-                    if (selectedSpectrum != null && Equals(FilePath, selectedSpectrum.FilePath))
+                    if (selectedSpectrum != null && Equals(FileUri, selectedSpectrum.FilePath))
                     {
                         chromGraphPrimary.SelectedRetentionMsMs = selectedSpectrum.RetentionTime;
                     }
@@ -2277,13 +2277,13 @@ namespace pwiz.Skyline.Controls.Graphs
                     if (settings.PeptideSettings.Libraries.HasMidasLibrary)
                     {
                         chromGraphPrimary.MidasRetentionMsMs = settings.PeptideSettings.Libraries.MidasLibraries.SelectMany(
-                            lib => lib.GetSpectraByPrecursor(chromGraphPrimary.Chromatogram.FilePath, chromGraphPrimary.Chromatogram.PrecursorMz))
+                            lib => lib.GetSpectraByPrecursor(chromGraphPrimary.Chromatogram.FileUri, chromGraphPrimary.Chromatogram.PrecursorMz))
                             .Select(s => s.RetentionTime).ToArray();
                     }
                 }
                 if (Settings.Default.ShowAlignedPeptideIdTimes)
                 {
-                    var listTimes = new List<double>(settings.GetAlignedRetentionTimes(FilePath, lookupSequence, lookupMods));
+                    var listTimes = new List<double>(settings.GetAlignedRetentionTimes(FileUri, lookupSequence, lookupMods));
                     if (listTimes.Count > 0)
                     {
                         var sortedTimes = listTimes.Distinct().ToArray();
@@ -2294,7 +2294,7 @@ namespace pwiz.Skyline.Controls.Graphs
                 if (Settings.Default.ShowUnalignedPeptideIdTimes)
                 {
                     var precursorMzs = nodeGroupsArray.Select(nodeGroup => nodeGroup.PrecursorMz).ToArray();
-                    var listTimes = new List<double>(settings.GetRetentionTimesNotAlignedTo(FilePath, lookupSequence, lookupMods, precursorMzs));
+                    var listTimes = new List<double>(settings.GetRetentionTimesNotAlignedTo(FileUri.GetMsDataFileId(), lookupSequence, lookupMods, precursorMzs));
                     if (listTimes.Count > 0)
                     {
                         var sortedTimes = listTimes.Distinct().ToArray();
@@ -2389,9 +2389,9 @@ namespace pwiz.Skyline.Controls.Graphs
                     {
                         if (info != null)
                         {
-                            name = SampleHelp.GetPathSampleNamePart(info.FilePath);
+                            name = SampleHelp.GetPathSampleNamePart(info.FileId);
                             if (string.IsNullOrEmpty(name))
-                                name = info.FilePath.GetFileName();
+                                name = info.FileId.GetFileName();
                             break;
                         }
                     }
@@ -2454,7 +2454,7 @@ namespace pwiz.Skyline.Controls.Graphs
                 // Get chromatogram sets for all transition groups, recording unique
                 // file paths in the process.
                 var listArrayChromInfo = new List<ChromatogramGroupInfo[]>();
-                var listFiles = new List<MsDataFileUri>();
+                var listFiles = new List<MsDataFileId>();
                 ChromatogramGroupInfo[] arrayAllIonsChromInfo;
                 if (!results.TryLoadAllIonsChromatogram(chromatograms, extractor, true,
                                                         out arrayAllIonsChromInfo))
@@ -2466,7 +2466,7 @@ namespace pwiz.Skyline.Controls.Graphs
                     listArrayChromInfo.Add(arrayAllIonsChromInfo);
                     foreach (var chromInfo in arrayAllIonsChromInfo)
                     {
-                        var filePath = chromInfo.FilePath;
+                        var filePath = chromInfo.FileId;
                         if (!listFiles.Contains(filePath))
                             listFiles.Add(filePath);
                     }
@@ -2485,7 +2485,7 @@ namespace pwiz.Skyline.Controls.Graphs
                         foreach (var chromInfo in arrayChromInfo)
                         {
                             qcTraceNameMatches = extractor != ChromExtractor.qc || Settings.Default.ShowQcTraceName == chromInfo.TextId;
-                            if (arrayNew[j] == null && Equals(listFiles[i], chromInfo.FilePath) && qcTraceNameMatches)
+                            if (arrayNew[j] == null && Equals(listFiles[i], chromInfo.FileId) && qcTraceNameMatches)
                                 arrayNew[j] = chromInfo;
                         }
                     }
@@ -2524,7 +2524,7 @@ namespace pwiz.Skyline.Controls.Graphs
                 // Get chromatogram sets for all transition groups, recording unique
                 // file paths in the process.
                 var listArrayChromInfo = new List<ChromatogramGroupInfo[]>();
-                var listFiles = new List<MsDataFileUri>();
+                var listFiles = new List<MsDataFileId>();
                 for (int i = 0; i < nodeGroups.Length; i++)
                 {
                     ChromatogramGroupInfo[] arrayChromInfo;
@@ -2543,7 +2543,7 @@ namespace pwiz.Skyline.Controls.Graphs
                     listArrayChromInfo.Add(arrayChromInfo);
                     foreach (var chromInfo in arrayChromInfo)
                     {
-                        var filePath = chromInfo.FilePath;
+                        var filePath = chromInfo.FileId;
                         if (!listFiles.Contains(filePath))
                             listFiles.Add(filePath);
                     }
@@ -2566,7 +2566,7 @@ namespace pwiz.Skyline.Controls.Graphs
                             continue;
                         foreach (var chromInfo in arrayChromInfo)
                         {
-                            if (arrayNew[j] == null && Equals(listFiles[i], chromInfo.FilePath))
+                            if (arrayNew[j] == null && Equals(listFiles[i], chromInfo.FileId))
                                 arrayNew[j] = chromInfo;
                         }
                     }
@@ -3635,23 +3635,23 @@ namespace pwiz.Skyline.Controls.Graphs
 
     public abstract class PeakEventArgs : EventArgs
     {
-        protected PeakEventArgs(IdentityPath groupPath, string nameSet, MsDataFileUri filePath)
+        protected PeakEventArgs(IdentityPath groupPath, string nameSet, MsDataFileUri fileUri)
         {
             GroupPath = groupPath;
             NameSet = nameSet;
-            FilePath = filePath;
+            FileUri = fileUri;
         }
 
         public IdentityPath GroupPath { get; private set; }
         public string NameSet { get; private set; }
-        public MsDataFileUri FilePath { get; private set; }
+        public MsDataFileUri FileUri { get; private set; }
     }
 
     public sealed class PickedPeakEventArgs : PeakEventArgs
     {
         public PickedPeakEventArgs(IdentityPath groupPath, Identity transitionId,
-                                   string nameSet, MsDataFileUri filePath, ScaledRetentionTime retentionTime)
-            : base(groupPath, nameSet, filePath)
+                                   string nameSet, MsDataFileUri fileUri, ScaledRetentionTime retentionTime)
+            : base(groupPath, nameSet, fileUri)
         {
             TransitionId = transitionId;
             RetentionTime = retentionTime;
@@ -3680,12 +3680,12 @@ namespace pwiz.Skyline.Controls.Graphs
         public ChangedPeakBoundsEventArgs(IdentityPath groupPath,
                                           Transition transition,
                                           string nameSet,
-                                          MsDataFileUri filePath,
+                                          MsDataFileUri fileUri,
                                           ScaledRetentionTime startTime,
                                           ScaledRetentionTime endTime,
                                           PeakIdentification identified,
                                           PeakBoundsChangeType changeType)
-            : base(groupPath, nameSet, filePath)
+            : base(groupPath, nameSet, fileUri)
         {
             Transition = transition;
             StartTime = startTime;

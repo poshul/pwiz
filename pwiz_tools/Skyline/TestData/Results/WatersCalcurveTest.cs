@@ -68,12 +68,12 @@ namespace pwiz.SkylineTestData.Results
             //     Assert.IsTrue(msData.IsThermoFile);
             // }
 
-            using (var msData = new MsDataFileImpl(testFilesDir.GetTestPath("160109_Mix1_calcurve_073.mzML"), null))
+            using (var msData = new MsDataFileImpl(testFilesDir.GetTestPath("160109_Mix1_calcurve_073.mzML")))
             {
                 Assert.IsTrue(msData.IsWatersFile);
             }
 
-            using (var msData = new MsDataFileImpl(testFilesDir.GetTestPath("160109_Mix1_calcurve_078.mzML"), null))
+            using (var msData = new MsDataFileImpl(testFilesDir.GetTestPath("160109_Mix1_calcurve_078.mzML")))
             {
                 Assert.IsTrue(msData.IsWatersFile);
             }
@@ -314,7 +314,7 @@ namespace pwiz.SkylineTestData.Results
                 var measuredResults = docResults.Settings.MeasuredResults;
                 var chromatograms = measuredResults.Chromatograms;
                 Assert.AreEqual(2, chromatograms.Count);
-                var dictPathToIndex = new Dictionary<MsDataFileUri, int>();
+                var dictPathToIndex = new Dictionary<MsDataFileId, int>();
                 for (int i = 0; i < 2; i++)
                 {
                     Assert.AreEqual(listChromatograms[i].BatchName, chromatograms[i].BatchName);
@@ -346,7 +346,7 @@ namespace pwiz.SkylineTestData.Results
                         {
                             var chromInfo = chromInfos[j];
                             // No guarantee that chromInfos will be in the same order as the ChromatogramSet.MsDataFileInfos
-                            int peakAreaIndex = dictPathToIndex[chromInfo.FilePath];
+                            int peakAreaIndex = dictPathToIndex[chromInfo.FileId];
                             Assert.IsTrue(chromInfo.BestPeakIndex != -1, string.Format("Missing peak {0} - {1}:{2}", nodeGroup, i, j));
                             foreach (var tranInfo in chromInfo.TransitionPointSets)
                             {
@@ -558,7 +558,7 @@ namespace pwiz.SkylineTestData.Results
                 // Make sure cache files exactly match the names the loader will look for
                 var listResultsFiles = new List<MsDataFileUri>();
                 foreach (var chromatogram in docCached.Settings.MeasuredResults.Chromatograms)
-                    listResultsFiles.AddRange(chromatogram.MSDataFilePaths);
+                    listResultsFiles.AddRange(chromatogram.MSDataFileUris);
                 for (int i = 0; i < fileCacheNames.Length; i++)
                 {
                     string partPath = ChromatogramCache.PartPathForName(docPath, listResultsFiles[i]);

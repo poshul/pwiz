@@ -257,7 +257,7 @@ namespace pwiz.Skyline.Model.Results
 
             public MsDataFileUri DataFilePath
             {
-                get { return GetProviderProperty(p => p.DataFilePath, new MsDataFilePath(string.Empty)); }
+                get { return GetProviderProperty(p => p.DataFilePath, new MsDataFileLocalUri(string.Empty)); }
             }
 
             public ChromSource Source

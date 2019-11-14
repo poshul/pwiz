@@ -188,10 +188,10 @@ namespace pwiz.SkylineTestTutorial
                 {
                     var importResultsDlg1 = ShowDialog<ImportResultsDlg>(SkylineWindow.ImportResults);
                     var openDataSourceDialog1 = ShowDialog<OpenDataSourceDialog>(() => importResultsDlg1.NamedPathSets =
-                        importResultsDlg1.GetDataSourcePathsFile(null));
+                        importResultsDlg1.GetDataSourceUrisFile(null));
                     RunUI(() =>
                     {
-                        openDataSourceDialog1.CurrentDirectory = new MsDataFilePath(GetTestPath("Unscheduled"));
+                        openDataSourceDialog1.CurrentDirectory = new MsDataFileLocalUri(GetTestPath("Unscheduled"));
                         openDataSourceDialog1.SelectAllFileType(ExtWatersRaw);
                     });
                     PauseForScreenShot<ImportResultsSamplesDlg>("Import Results Files form", 7);
@@ -305,10 +305,10 @@ namespace pwiz.SkylineTestTutorial
                 {
                     var importResultsDlg1 = ShowDialog<ImportResultsDlg>(SkylineWindow.ImportResults);
                     var openDataSourceDialog1 = ShowDialog<OpenDataSourceDialog>(() => importResultsDlg1.NamedPathSets =
-                        importResultsDlg1.GetDataSourcePathsFile(null));
+                        importResultsDlg1.GetDataSourceUrisFile(null));
                     RunUI(() =>
                     {
-                        openDataSourceDialog1.CurrentDirectory = new MsDataFilePath(GetTestPath("Scheduled"));
+                        openDataSourceDialog1.CurrentDirectory = new MsDataFileLocalUri(GetTestPath("Scheduled"));
                         openDataSourceDialog1.SelectAllFileType(ExtWatersRaw);
                     });
                     OkDialog(openDataSourceDialog1, openDataSourceDialog1.Open);
@@ -479,7 +479,7 @@ namespace pwiz.SkylineTestTutorial
                     var openDataSourceDialog1 = ShowDialog<OpenDataSourceDialog>(() => importResultsDlg1.OkDialog());
                     RunUI(() =>
                     {
-                        openDataSourceDialog1.CurrentDirectory = new MsDataFilePath(GetTestPath("CE Optimization"));
+                        openDataSourceDialog1.CurrentDirectory = new MsDataFileLocalUri(GetTestPath("CE Optimization"));
                         openDataSourceDialog1.SelectAllFileType(ExtWatersRaw);
                     });
                     PauseForScreenShot<ImportResultsSamplesDlg>("Import Results Files form", 20);

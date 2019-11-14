@@ -96,7 +96,7 @@ namespace pwiz.SkylineTestData.Results
                 var chromSets = new[]
                 {
                     new ChromatogramSet(replicateName, new[]
-                        { new MsDataFilePath(testFilesDir.GetTestPath("OnyxTOFMS" + suffix + extRaw)),  }),
+                        { new MsDataFileLocalUri(testFilesDir.GetTestPath("OnyxTOFMS" + suffix + extRaw)),  }),
                 };
                 var docResults = doc.ChangeMeasuredResults(new MeasuredResults(chromSets));
                 Assert.IsTrue(docContainer.SetDocument(docResults, doc, true));
@@ -124,23 +124,23 @@ namespace pwiz.SkylineTestData.Results
             
 
             var c = new ChromatogramSet("test", new[] { MsDataFileUri.Parse(pathSample) });
-            Assert.AreEqual(fname, c.MSDataFilePaths.First().GetFilePath());
-            Assert.IsTrue(c.MSDataFilePaths.First().GetCentroidMs1());
-            Assert.IsFalse(c.MSDataFilePaths.First().GetCentroidMs2());
+            Assert.AreEqual(fname, c.MSDataFileUris.First().GetFilePath());
+            Assert.IsTrue(c.MSDataFileUris.First().GetCentroidMs1());
+            Assert.IsFalse(c.MSDataFileUris.First().GetCentroidMs2());
 
             pathSample = SampleHelp.EncodePath(fname, null, -1, lockmassParametersA,false,true, true);
             c = new ChromatogramSet("test", new[] { MsDataFileUri.Parse(pathSample) });
-            Assert.AreEqual(lockmassParametersA, c.MSDataFilePaths.First().GetLockMassParameters());
-            Assert.IsTrue(c.MSDataFilePaths.First().GetCentroidMs2());
-            Assert.IsFalse(c.MSDataFilePaths.First().GetCentroidMs1());
+            Assert.AreEqual(lockmassParametersA, c.MSDataFileUris.First().GetLockMassParameters());
+            Assert.IsTrue(c.MSDataFileUris.First().GetCentroidMs2());
+            Assert.IsFalse(c.MSDataFileUris.First().GetCentroidMs1());
 
             pathSample = SampleHelp.EncodePath(fname, "test_0", 1, lockmassParametersB,false,false, true);
             c = new ChromatogramSet("test", new[] { MsDataFileUri.Parse(pathSample) });
-            Assert.AreEqual(lockmassParametersB, c.MSDataFilePaths.First().GetLockMassParameters());
-            Assert.AreEqual("test_0", c.MSDataFilePaths.First().GetSampleName());
-            Assert.AreEqual(1, c.MSDataFilePaths.First().GetSampleIndex());
-            Assert.IsFalse(c.MSDataFilePaths.First().GetCentroidMs1());
-            Assert.IsFalse(c.MSDataFilePaths.First().GetCentroidMs2());
+            Assert.AreEqual(lockmassParametersB, c.MSDataFileUris.First().GetLockMassParameters());
+            Assert.AreEqual("test_0", c.MSDataFileUris.First().GetSampleName());
+            Assert.AreEqual(1, c.MSDataFileUris.First().GetSampleIndex());
+            Assert.IsFalse(c.MSDataFileUris.First().GetCentroidMs1());
+            Assert.IsFalse(c.MSDataFileUris.First().GetCentroidMs2());
         }
 
         [TestMethod]

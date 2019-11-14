@@ -144,7 +144,7 @@ namespace pwiz.Skyline.FileUI
         {
             var measuredResults = Document.Settings.MeasuredResults;
             int i = 0;
-            foreach (var filePath in measuredResults.MSDataFilePaths)
+            foreach (var filePath in measuredResults.MSDataFileIds)
             {
                 checkedListVars.Items.Insert(i, filePath.GetFileName());
                 ++i;

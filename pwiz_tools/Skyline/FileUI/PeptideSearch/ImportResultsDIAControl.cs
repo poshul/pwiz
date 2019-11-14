@@ -94,7 +94,7 @@ namespace pwiz.Skyline.FileUI.PeptideSearch
             {
                 // The dialog expects null to mean no directory was supplied, so don't assign an empty string.
                 string initialDir = Path.GetDirectoryName(DocumentContainer.DocumentFilePath);
-                dlgOpen.InitialDirectory = new MsDataFilePath(initialDir);
+                dlgOpen.InitialDirectory = new MsDataFileLocalUri(initialDir);
 
                 // Use saved source type, if there is one.
                 string sourceType = Settings.Default.SrmResultsSourceType;

@@ -1747,7 +1747,7 @@ namespace pwiz.Skyline.Model
             if (!Settings.HasResults || !Settings.MeasuredResults.TryGetChromatogramSet(nameSet, out chromatograms, out indexSet))
                 throw new ArgumentOutOfRangeException(string.Format(Resources.SrmDocument_ChangePeak_No_replicate_named__0__was_found, nameSet));
             // Calculate the file index that supplied the chromatograms
-            ChromFileInfoId fileId = chromatograms.FindFile(filePath);
+            ChromFileInfoId fileId = chromatograms.FindFile(filePath.GetMsDataFileId());
             if (fileId == null)
             {
                 throw new ArgumentOutOfRangeException(
@@ -1764,7 +1764,7 @@ namespace pwiz.Skyline.Model
                                                                     TransitionGroupTreeNode.GetLabel(nodeGroup.TransitionGroup, nodeGroup.PrecursorMz, string.Empty), nameSet));
             }
             // Get the chromatograms for only the file of interest
-            int indexInfo = arrayChromInfo.IndexOf(info => Equals(filePath, info.FilePath));
+            int indexInfo = arrayChromInfo.IndexOf(info => Equals(filePath, info.FileId));
             if (indexInfo == -1)
             {
                 throw new ArgumentOutOfRangeException(string.Format(Resources.SrmDocument_ChangePeak_No_results_found_for_the_precursor__0__in_the_file__1__,

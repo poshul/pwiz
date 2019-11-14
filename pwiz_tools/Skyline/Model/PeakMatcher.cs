@@ -58,7 +58,7 @@ namespace pwiz.Skyline.Model
             if (!doc.Settings.MeasuredResults.TryLoadChromatogram(chromSet, nodePep, nodeTranGroup, mzMatchTolerance, true, out chromGroupInfos))
                 return;
 
-            var chromGroupInfo = chromGroupInfos.FirstOrDefault(info => Equals(chromSet.GetFileInfo(tranGroupChromInfo.FileId).FilePath, info.FilePath));
+            var chromGroupInfo = chromGroupInfos.FirstOrDefault(info => Equals(chromSet.GetFileInfo(tranGroupChromInfo.FileId).FilePath, info.FileId));
             if (chromGroupInfo == null || chromGroupInfo.NumPeaks == 0 || !chromGroupInfo.TimeIntensitiesGroup.HasAnyPoints)
                 return;
 
@@ -147,7 +147,7 @@ namespace pwiz.Skyline.Model
 
                     var bestMatch = GetPeakMatch(doc, chromSet, fileInfo, nodeTranGroup, referenceTarget, referenceMatchData);
                     if (bestMatch != null)
-                        doc = bestMatch.ChangePeak(doc, nodePepTree, nodeTranGroup, chromSet.Name, fileInfo.FilePath);
+                        doc = bestMatch.ChangePeak(doc, nodePepTree, nodeTranGroup, chromSet.Name, fileInfo.FileUri);
                 }
                 longWaitBroker.SetProgressCheckCancel(i + 1, chromatograms.Count);
             }
@@ -208,7 +208,7 @@ namespace pwiz.Skyline.Model
             if (!nodeTranGroup.HasResults || !doc.Settings.MeasuredResults.TryLoadChromatogram(chromSet, null, nodeTranGroup, mzMatchTolerance, true, out loadInfos))
                 return null;
 
-            var chromGroupInfo = loadInfos.FirstOrDefault(info => Equals(info.FilePath, fileInfo.FilePath));
+            var chromGroupInfo = loadInfos.FirstOrDefault(info => Equals(info.FileId, fileInfo.FilePath));
             if (chromGroupInfo == null || chromGroupInfo.NumPeaks == 0 || !chromGroupInfo.TimeIntensitiesGroup.HasAnyPoints)
                 return null;
 

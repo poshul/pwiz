@@ -67,7 +67,7 @@ namespace pwiz.Skyline.Model.Results
             // Need a newly loaded copy to allow for concurrent loading for multiple cached files
             _cache = ChromatogramCache.Load(cache.CachePath, new ProgressStatus(), loader, assumeNegativeChargesInPreV11Caches);
 
-            _fileIndex = cache.CachedFiles.IndexOf(f => Equals(f.FilePath, dataFilePath));
+            _fileIndex = cache.CachedFiles.IndexOf(f => Equals(f.FilePath, dataFilePath.GetMsDataFileId()));
             _sourceHasCombinedIonMobilitySpectra = dataFilePath.GetCombineIonMobilitySpectra() ?? false;
             _chromKeyIndices = cache.GetChromKeys(dataFilePath).OrderBy(v => v.LocationPoints).ToArray();
             foreach (var c in _chromKeyIndices.Where(i => i.Key.Precursor != 0))

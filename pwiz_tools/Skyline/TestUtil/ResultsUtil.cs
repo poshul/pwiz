@@ -442,7 +442,7 @@ namespace pwiz.SkylineTestUtil
             {
                 foreach (var chromSet in document.Settings.MeasuredResults.Chromatograms)
                 {
-                    if (chromSet.MSDataFilePaths.Contains(path))
+                    if (chromSet.MSDataFileUris.Contains(path))
                         return chromSet;
                 }
             }

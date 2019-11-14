@@ -135,7 +135,7 @@ namespace pwiz.SkylineTestFunctional
                     if (shouldBeVisible)
                     {
                         // Make sure it's showing the right data
-                        Assert.IsTrue(graphChromatograms.First(g => g.NameSet.Equals(name)).FilePath.ToString().Contains(GetReplicateNameFromIndex(index)));
+                        Assert.IsTrue(graphChromatograms.First(g => g.NameSet.Equals(name)).FileUri.ToString().Contains(GetReplicateNameFromIndex(index)));
                     }
                 }
             }

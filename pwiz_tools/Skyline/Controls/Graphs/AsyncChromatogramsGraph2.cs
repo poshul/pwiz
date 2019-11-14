@@ -155,7 +155,7 @@ namespace pwiz.Skyline.Controls.Graphs
                     GraphPane = _templatePane.Clone(),
                     ActiveCurves = new List<CurveInfo>()
                 };
-                info.GraphPane.Title.Text = status.DecoratedFilePath.GetFileNameWithoutExtension();
+                info.GraphPane.Title.Text = status.FilePath.GetFileNameWithoutExtension();
             }
 
             // Create curve information from the transition data.

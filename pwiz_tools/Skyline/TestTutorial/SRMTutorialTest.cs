@@ -443,7 +443,7 @@ namespace pwiz.SkylineTestTutorial
                 var files = new MsDataFileUri[paths.Length];
                 for (int i = 0; i < paths.Length; i++)
                 {
-                    files[i] = new MsDataFilePath(GetTestPath(paths[i]));
+                    files[i] = new MsDataFileLocalUri(GetTestPath(paths[i]));
                 }
                 var keyPair = new KeyValuePair<string, MsDataFileUri[]>(prefix, files);
                 KeyValuePair<string, MsDataFileUri[]>[] pathHolder = addNew

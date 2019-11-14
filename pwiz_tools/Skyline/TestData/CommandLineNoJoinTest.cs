@@ -59,7 +59,7 @@ namespace pwiz.SkylineTestData
                 string outFile = testFilesDir.GetTestPath("partial" + iFile + ".sky");
                 RunCommand("--in=" + inDocPath, "--import-file=" + rawFile, "--out=" + outFile, "--import-no-join");
                 Assert.IsTrue(File.Exists(outFile), rawFile);
-                string partialSkydFile = ChromatogramCache.PartPathForName(outFile, new MsDataFilePath(rawFile));
+                string partialSkydFile = ChromatogramCache.PartPathForName(outFile, new MsDataFileLocalUri(rawFile));
                 Assert.IsTrue(File.Exists(partialSkydFile), rawFile);
                 partialSkydFiles.Add(partialSkydFile);
                 File.Delete(outFile);
@@ -93,7 +93,7 @@ namespace pwiz.SkylineTestData
                 Assert.AreEqual(rawFiles.Length, srmDocument.MeasuredResults.Chromatograms.Count);
                 for (int iFile = 0; iFile < rawFiles.Length; iFile++)
                 {
-                    var msDataFilePath = srmDocument.MeasuredResults.Chromatograms[iFile].MSDataFilePaths.First() as MsDataFilePath;
+                    var msDataFilePath = srmDocument.MeasuredResults.Chromatograms[iFile].MSDataFileUris.First() as MsDataFileLocalUri;
                     Assert.IsNotNull(msDataFilePath);
                     Assert.AreEqual(rawFiles[iFile], msDataFilePath.FilePath);
                 }

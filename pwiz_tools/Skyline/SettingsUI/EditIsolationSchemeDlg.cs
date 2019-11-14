@@ -1024,7 +1024,7 @@ namespace pwiz.Skyline.SettingsUI
             string activeDir = Settings.Default.ActiveDirectory;
             if (string.IsNullOrEmpty(activeDir))
                 activeDir = null;
-            var dataSources = ImportResultsDlg.GetDataSourcePaths(this, activeDir);
+            var dataSources = ImportResultsDlg.GetDataSourceUris(this, activeDir);
             if (dataSources == null)
                 return;
 

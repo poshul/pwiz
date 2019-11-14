@@ -62,7 +62,7 @@ namespace pwiz.SkylineTestData.Results
                 var chromSets = new[]
                 {
                     new ChromatogramSet(replicateName, new[]
-                        { new MsDataFilePath(testFilesDir.GetTestPath("BSA-digest__MRM_optimisation_SL_scheduled_001" + extRaw)),  }),
+                        { new MsDataFileLocalUri(testFilesDir.GetTestPath("BSA-digest__MRM_optimisation_SL_scheduled_001" + extRaw)),  }),
                 };
                 var docResults = doc.ChangeMeasuredResults(new MeasuredResults(chromSets));
                 Assert.IsTrue(docContainer.SetDocument(docResults, doc, true));

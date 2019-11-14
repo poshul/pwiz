@@ -114,7 +114,7 @@ namespace pwiz.SkylineTestData.Results
                 // Import the first RAW file (or mzML for international)
                 string rawPath = testFilesDir.GetTestPath("ah_20101011y_BSA_MS-MS_only_5-2" +
                     ExtensionTestContext.ExtThermoRaw);
-                var measuredResults = new MeasuredResults(new[] { new ChromatogramSet("Single", new[] { new MsDataFilePath(rawPath) }) });
+                var measuredResults = new MeasuredResults(new[] { new ChromatogramSet("Single", new[] { new MsDataFileLocalUri(rawPath) }) });
 
                 SrmDocument docResults = docContainer.ChangeMeasuredResults(measuredResults, 3, 3, 21);
 
@@ -281,7 +281,7 @@ namespace pwiz.SkylineTestData.Results
                 var filePath = testFilesDir.GetTestPath(fileName);
                 AssertEx.ThrowsException<AssertFailedException>(() =>
                 {
-                    listResults = new List<ChromatogramSet> { new ChromatogramSet("rep1", new[] { new MsDataFilePath(filePath, null, true) }), };
+                    listResults = new List<ChromatogramSet> { new ChromatogramSet("rep1", new[] { new MsDataFileLocalUri(filePath, null, true) }), };
                     docContainer.ChangeMeasuredResults(new MeasuredResults(listResults.ToArray()), 1, 1, 1);
                 },
                     string.Format(Resources.NoCentroidedDataException_NoCentroidedDataException_No_centroided_data_available_for_file___0_____Adjust_your_Full_Scan_settings_, filePath));

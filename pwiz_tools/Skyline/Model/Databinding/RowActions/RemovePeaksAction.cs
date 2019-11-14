@@ -146,10 +146,10 @@ namespace pwiz.Skyline.Model.Databinding.RowActions
             return document.ChangePeak(groupPath, replicateName, filePath, null, 0, 0, UserSet.TRUE, PeakIdentification.FALSE, false);
         }
 
-        private static bool GetReplicateName(SrmDocument document, ResultFileKey resultFileKey, out string replicateName, out MsDataFileUri filePath)
+        private static bool GetReplicateName(SrmDocument document, ResultFileKey resultFileKey, out string replicateName, out MsDataFileUri fileUri)
         {
             replicateName = null;
-            filePath = null;
+            fileUri = null;
             if (!document.Settings.HasResults || document.Settings.MeasuredResults.Chromatograms.Count <= resultFileKey.ReplicateIndex)
             {
                 return false;
@@ -163,7 +163,7 @@ namespace pwiz.Skyline.Model.Databinding.RowActions
             }
 
             replicateName = chromatogramSet.Name;
-            filePath = chromFileInfo.FilePath;
+            fileUri = chromFileInfo.FileUri;
             return true;
         }
 

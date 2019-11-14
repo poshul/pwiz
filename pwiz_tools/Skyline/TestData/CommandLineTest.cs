@@ -1331,7 +1331,7 @@ namespace pwiz.SkylineTestData
             var outPath4 = testFilesDir.GetTestPath("Imported_multiple4.sky");
             FileEx.SafeDelete(outPath4);
 
-            var rawPath = new MsDataFilePath(testFilesDir.GetTestPath(@"REP01\CE_Vantage_15mTorr_0001_REP1_01" + extRaw));
+            var rawPath = new MsDataFileLocalUri(testFilesDir.GetTestPath(@"REP01\CE_Vantage_15mTorr_0001_REP1_01" + extRaw));
             
             // Test: Cannot use --import-file and --import-all options simultaneously
             var msg = RunCommand("--in=" + docPath,
@@ -1437,7 +1437,7 @@ namespace pwiz.SkylineTestData
             int initialFileCount = 0;
             foreach (var chromatogram in doc.Settings.MeasuredResults.Chromatograms)
             {
-                initialFileCount += chromatogram.MSDataFilePaths.Count();
+                initialFileCount += chromatogram.MSDataFileUris.Count();
             }
 
             // Import another single file. 
@@ -1452,7 +1452,7 @@ namespace pwiz.SkylineTestData
             int idx;
             doc.Settings.MeasuredResults.TryGetChromatogramSet("160109_Mix1_calcurve_070", out chromatSet, out idx);
             Assert.IsNotNull(chromatSet, msg);
-            Assert.IsTrue(chromatSet.MSDataFilePaths.Contains(rawPath2));
+            Assert.IsTrue(chromatSet.MSDataFileUris.Contains(rawPath2));
 
 
             // Test: Import all files and sub-folders in test directory
@@ -1466,7 +1466,7 @@ namespace pwiz.SkylineTestData
                              "--save");
             // ExtensionTestContext.ExtThermo raw uses different case from file on disk
             // which happens to make a good test case.
-            MsDataFilePath rawPathDisk = GetThermoDiskPath(rawPath);
+            MsDataFileLocalUri rawPathDisk = GetThermoDiskPath(rawPath);
 
             // These messages are due to files that were already in the document.
             Assert.IsTrue(msg.Contains(string.Format(Resources.CommandLine_RemoveImportedFiles__0______1___Note__The_file_has_already_been_imported__Ignoring___, "REP01", rawPathDisk)), msg);
@@ -1482,7 +1482,7 @@ namespace pwiz.SkylineTestData
             int totalImportedFiles = 0;
             foreach (var chromatogram in doc.Settings.MeasuredResults.Chromatograms)
             {
-                totalImportedFiles += chromatogram.MSDataFilePaths.Count();
+                totalImportedFiles += chromatogram.MSDataFileUris.Count();
             }
             // We should have imported 7 more file
             Assert.AreEqual(initialFileCount + 7, totalImportedFiles);
@@ -1491,16 +1491,16 @@ namespace pwiz.SkylineTestData
             int index;
             doc.Settings.MeasuredResults.TryGetChromatogramSet("REP01", out chromatogramSet, out index);
             Assert.IsNotNull(chromatogramSet);
-            Assert.IsTrue(chromatogramSet.MSDataFilePaths.Count() == 1);
-            Assert.IsTrue(chromatogramSet.MSDataFilePaths.Contains(
-                new MsDataFilePath(testFilesDir.GetTestPath(@"REP01\CE_Vantage_15mTorr_0001_REP1_01" +
+            Assert.IsTrue(chromatogramSet.MSDataFileUris.Count() == 1);
+            Assert.IsTrue(chromatogramSet.MSDataFileUris.Contains(
+                new MsDataFileLocalUri(testFilesDir.GetTestPath(@"REP01\CE_Vantage_15mTorr_0001_REP1_01" +
                                                             extRaw))));
             // REP012 should have the file REP01\CE_Vantage_15mTorr_0001_REP1_02.raw|mzML
             doc.Settings.MeasuredResults.TryGetChromatogramSet("REP012", out chromatogramSet, out index);
             Assert.IsNotNull(chromatogramSet);
-            Assert.IsTrue(chromatogramSet.MSDataFilePaths.Count() == 1);
-            Assert.IsTrue(!useRaw || chromatogramSet.MSDataFilePaths.Contains(
-                GetThermoDiskPath(new MsDataFilePath(testFilesDir.GetTestPath(@"REP01\CE_Vantage_15mTorr_0001_REP1_02" + extRaw)))));
+            Assert.IsTrue(chromatogramSet.MSDataFileUris.Count() == 1);
+            Assert.IsTrue(!useRaw || chromatogramSet.MSDataFileUris.Contains(
+                GetThermoDiskPath(new MsDataFileLocalUri(testFilesDir.GetTestPath(@"REP01\CE_Vantage_15mTorr_0001_REP1_02" + extRaw)))));
  
 
             // Test: Import non-recursive
@@ -1780,13 +1780,13 @@ namespace pwiz.SkylineTestData
             Assert.AreEqual(2, doc.MeasuredResults.Chromatograms.Count);
             doc.MeasuredResults.TryGetChromatogramSet("Rep1", out var chromatogramSet1, out _);
             Assert.IsNotNull(chromatogramSet1);
-            Assert.AreEqual(1, chromatogramSet1.MSDataFilePaths.Count());
-            Assert.IsTrue(chromatogramSet1.MSDataFilePaths.Contains(rawPath1));
+            Assert.AreEqual(1, chromatogramSet1.MSDataFileUris.Count());
+            Assert.IsTrue(chromatogramSet1.MSDataFileUris.Contains(rawPath1));
 
             doc.MeasuredResults.TryGetChromatogramSet("Rep12", out var chromatogramSet2, out _);
             Assert.IsNotNull(chromatogramSet2);
-            Assert.AreEqual(1, chromatogramSet2.MSDataFilePaths.Count());
-            Assert.IsTrue(chromatogramSet2.MSDataFilePaths.Contains(rawPath2));
+            Assert.AreEqual(1, chromatogramSet2.MSDataFileUris.Count());
+            Assert.IsTrue(chromatogramSet2.MSDataFileUris.Contains(rawPath2));
             CheckRunCommandOutputContains(
                 string.Format(
                     Resources
@@ -1830,7 +1830,7 @@ namespace pwiz.SkylineTestData
             var docPath = testFilesDir.GetTestPath("test.sky");
 
             // Test: Import a file to an empty document and upload to the panorama server
-            var rawPath = new MsDataFilePath(testFilesDir.GetTestPath(@"REP01\CE_Vantage_15mTorr_0001_REP1_01" + extRaw));
+            var rawPath = new MsDataFileLocalUri(testFilesDir.GetTestPath(@"REP01\CE_Vantage_15mTorr_0001_REP1_01" + extRaw));
             var msg = RunCommand("--in=" + docPath,
                              "--import-file=" + rawPath.FilePath,
                 //"--import-on-or-after=1/1/2014",
@@ -1846,7 +1846,7 @@ namespace pwiz.SkylineTestData
 
 
             // Test: Import a second file and upload to the panorama server
-            rawPath = new MsDataFilePath(testFilesDir.GetTestPath(@"REP01\CE_Vantage_15mTorr_0001_REP1_02" + extRaw));
+            rawPath = new MsDataFileLocalUri(testFilesDir.GetTestPath(@"REP01\CE_Vantage_15mTorr_0001_REP1_02" + extRaw));
             msg = RunCommand("--in=" + docPath,
                              "--import-file=" + rawPath.FilePath,
                              "--save",
@@ -2509,7 +2509,7 @@ namespace pwiz.SkylineTestData
 
         }
 
-        private static MsDataFilePath GetThermoDiskPath(MsDataFilePath pathToRaw)
+        private static MsDataFileLocalUri GetThermoDiskPath(MsDataFileLocalUri pathToRaw)
         {
             return ExtensionTestContext.CanImportThermoRaw && ExtensionTestContext.CanImportWatersRaw
                 ? pathToRaw.SetFilePath(Path.ChangeExtension(pathToRaw.FilePath, "raw"))

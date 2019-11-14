@@ -55,13 +55,13 @@ namespace pwiz.Skyline.Model.Results
         //private static readonly Log LOG = new Log<ChromCacheBuilder>();
 
         public ChromCacheBuilder(SrmDocument document, ChromatogramCache cacheRecalc,
-            string cachePath, MsDataFileUri msDataFilePath, ILoadMonitor loader, IProgressStatus status,
+            string cachePath, MsDataFileUri msDataFileUri, ILoadMonitor loader, IProgressStatus status,
             Action<ChromatogramCache, IProgressStatus> complete)
             : base(cachePath, loader, status, complete)
         {
             _document = document;
             _cacheRecalc = cacheRecalc;
-            MSDataFilePath = msDataFilePath;
+            MSDataFileUri = msDataFileUri;
 
             // Initialize retention time prediction
             _retentionTimePredictor = new RetentionTimePredictor(document.Settings.PeptideSettings.Prediction.RetentionTime);
@@ -104,7 +104,8 @@ namespace pwiz.Skyline.Model.Results
             }
         }
 
-        private MsDataFileUri MSDataFilePath { get; set; }
+        private MsDataFileUri MSDataFileUri { get; set; }
+        private MsDataFileId MSDataFilePath { get {return MSDataFileUri.GetMsDataFileId(); } }
         private RetentionTimeAlignmentIndices FileAlignmentIndices { get; set; }
 
         private IList<DetailedPeakFeatureCalculator> DetailedPeakFeatureCalculators { get; set; }
@@ -136,9 +137,9 @@ namespace pwiz.Skyline.Model.Results
             ChromFileInfo fileInfo = _document.Settings.MeasuredResults.GetChromFileInfo(MSDataFilePath);
             Assume.IsNotNull(fileInfo);
             string dataFilePathPart;
-            MsDataFileUri dataFilePathRecalc = GetRecalcDataFilePath(MSDataFilePath, out dataFilePathPart);
+            var dataFileUriRecalc = GetRecalcDataFileUri(MSDataFileUri, out dataFilePathPart);
 
-            string format = dataFilePathRecalc == null
+            string format = dataFileUriRecalc == null
                                 ? Resources.ChromCacheBuilder_BuildNextFileInner_Importing__0__
                                 : Resources.ChromCacheBuilder_BuildNextFileInner_Recalculating_scores_for__0_;
             string message = string.Format(format, MSDataFilePath.GetSampleName() ?? MSDataFilePath.GetFileName());
@@ -155,49 +156,49 @@ namespace pwiz.Skyline.Model.Results
                 allChromData.MaxRetentionTimeKnown = false;
                 _status = loadingStatus
                     .ChangeImporting(true)
-                    .ChangeFilePath(MSDataFilePath);
+                    .ChangeFileUri(MSDataFileUri);
             }
             _loader.UpdateProgress(_status);
 
             try
             {
-                var dataFilePath = MSDataFilePath;
-                var centroidMS1 = MSDataFilePath.GetCentroidMs1();
-                var centroidMS2 = MSDataFilePath.GetCentroidMs2();
-                var combineIonMobilitySpectra = MSDataFilePath.GetCombineIonMobilitySpectra();
-                var msDataFilePath = MSDataFilePath as MsDataFilePath;
-                if (msDataFilePath != null)
+                var dataFileUri = MSDataFileUri;
+                var centroidMS1 = MSDataFileUri.GetCentroidMs1();
+                var centroidMS2 = MSDataFileUri.GetCentroidMs2();
+                var combineIonMobilitySpectra = MSDataFileUri.GetCombineIonMobilitySpectra();
+                var msDataFileLocalPath = MSDataFileUri as MsDataFileLocalUri;
+                if (msDataFileLocalPath != null)
                 {
-                    dataFilePath = dataFilePathRecalc ??
-                                   ChromatogramSet.GetExistingDataFilePath(CachePath, msDataFilePath,
+                    dataFileUri = dataFileUriRecalc ??
+                                   ChromatogramSet.GetExistingDataFilePath(CachePath, msDataFileLocalPath,
                                        out dataFilePathPart);
-                    if (dataFilePath == null)
+                    if (dataFileUri == null)
                         throw new FileNotFoundException(
                             string.Format(Resources.ChromCacheBuilder_BuildNextFileInner_The_file__0__does_not_exist,
                                 dataFilePathPart), dataFilePathPart);
                 }
-                MSDataFilePath = dataFilePath;
+                MSDataFileUri = dataFileUri;
 
                 // Once a ChromDataProvider is created, it owns disposing of the MSDataFileImpl.
                 MsDataFileImpl inFile = null;
                 ChromDataProvider provider = null;
                 try
                 {
-                    if (dataFilePathRecalc == null)
+                    if (dataFileUriRecalc == null)
                     {
                         // Always use SIM as spectra, if any full-scan chromatogram extraction is enabled
                         var fullScan = _document.Settings.TransitionSettings.FullScan;
                         var enableSimSpectrum = fullScan.IsEnabled;
                         var preferOnlyMsLevel = fullScan.IsEnabled && !fullScan.IsEnabledMsMs ? 1 : 0; // If we don't want MS2, ask reader to totally skip it (not guaranteed)
 //                        var precursorIonMobility = GetPrecursorMzAndIonMobilityWindows(fullScan, dataFilePath); // A list of [mz, (optionally) IM window] values for pre-filtering by pwiz (not guaranteed)
-                        inFile = MSDataFilePath.OpenMsDataFile(enableSimSpectrum, preferOnlyMsLevel, combineIonMobilitySpectra??true, true); // Omit zero intensity points
-                        // Preserve centroiding info as part of MsDataFileUri string in chromdata only if it will be used
+                        inFile = MSDataFileUri.OpenMsDataFile(enableSimSpectrum, preferOnlyMsLevel, combineIonMobilitySpectra??true, true); // Omit zero intensity points
+                        // Preserve centroiding info as part of MsDataFileId string in chromdata only if it will be used
                         // CONSIDER: Dangerously high knowledge of future control flow required for making this decision
                         if (!ChromatogramDataProvider.HasChromatogramData(inFile) && !inFile.HasSrmSpectra)
-                            MSDataFilePath = MSDataFilePath.ChangeCentroiding(centroidMS1, centroidMS2);
+                            MSDataFileUri = MSDataFileUri.ChangeCentroiding(centroidMS1, centroidMS2);
                         // For future backward compatibility, we need to note whether or not combinedIMS was actually performed
-                        MSDataFilePath = MSDataFilePath.ChangeCombineIonMobilitySpectra(inFile.HasCombinedIonMobilitySpectra ? true : inFile.HasIonMobilitySpectra ? false : (bool?)null);
-                        dataFilePath = MSDataFilePath;
+                        MSDataFileUri = MSDataFileUri.ChangeCombineIonMobilitySpectra(inFile.HasCombinedIonMobilitySpectra ? true : inFile.HasIonMobilitySpectra ? false : (bool?)null);
+                        dataFileUri = MSDataFileUri;
                     }
 
                     // Check for cancellation
@@ -210,7 +211,7 @@ namespace pwiz.Skyline.Model.Results
                     if (_fs.Stream == null)
                         _fs.Stream = _loader.StreamManager.CreateStream(_fs.SafeName, FileMode.Create, true);
 
-                    _currentFileInfo = GetRecalcFileBuildInfo(dataFilePathRecalc);
+                    _currentFileInfo = GetRecalcFileBuildInfo(dataFileUriRecalc);
                     if (null == _currentFileInfo)
                     {
                         if (null == inFile)
@@ -220,14 +221,14 @@ namespace pwiz.Skyline.Model.Results
                         }
                         else
                         {
-                            _currentFileInfo = FileBuildInfo.GetFileBuildInfo(MSDataFilePath, inFile);
+                            _currentFileInfo = FileBuildInfo.GetFileBuildInfo(MSDataFileUri, inFile);
                         }
                     }
 
                     // Read and write the mass spec data)
-                    if (dataFilePathRecalc != null)
+                    if (dataFileUriRecalc != null)
                     {
-                        provider = CreateChromatogramRecalcProvider(dataFilePathRecalc, fileInfo);
+                        provider = CreateChromatogramRecalcProvider(dataFileUriRecalc, fileInfo);
                         if (allChromData != null)
                         {
                             allChromData.MaxIntensity = (float) (provider.MaxIntensity ?? 0);
@@ -246,7 +247,7 @@ namespace pwiz.Skyline.Model.Results
                     else
                     {
                         throw new InvalidDataException(String.Format(Resources.ChromCacheBuilder_BuildNextFileInner_The_sample__0__contains_no_usable_data,
-                                dataFilePath.GetSampleOrFileName()));
+                                dataFileUri.GetSampleOrFileName()));
                     }
 
                     _currentFileInfo.IsSingleMatchMz = provider.IsSingleMzMatch;
@@ -339,14 +340,14 @@ namespace pwiz.Skyline.Model.Results
             }
         }
 
-        private MsDataFileUri GetRecalcDataFilePath(MsDataFileUri dataFilePath, out string dataFilePathPart)
+        private MsDataFileUri GetRecalcDataFileUri(MsDataFileUri dataFilePath, out string dataFilePathPart)
         {
-            if (_cacheRecalc == null || !_cacheRecalc.CachedFilePaths.Contains(dataFilePath))
+            if (_cacheRecalc == null || !_cacheRecalc.CachedFilePaths.Contains(dataFilePath.GetMsDataFileId()))
             {
                 dataFilePathPart = null;
                 return null;
             }
-            var msDataFilePath = dataFilePath as MsDataFilePath;
+            var msDataFilePath = dataFilePath as MsDataFileLocalUri;
             dataFilePathPart = msDataFilePath != null ? msDataFilePath.FilePath : null;
             return dataFilePath;
         }
@@ -355,7 +356,7 @@ namespace pwiz.Skyline.Model.Results
         {
             if (_cacheRecalc == null || dataFilePathRecalc == null)
                 return null;
-            int i = _cacheRecalc.CachedFiles.IndexOf(f => Equals(f.FilePath, dataFilePathRecalc));
+            int i = _cacheRecalc.CachedFiles.IndexOf(f => Equals(f.FilePath, dataFilePathRecalc.GetMsDataFileId()));
             if (i == -1)
                 throw new ArgumentException(string.Format(Resources.ChromCacheBuilder_GetRecalcFileBuildInfo_The_path___0___was_not_found_among_previously_imported_results_, dataFilePathRecalc));
             var cachedFile = _cacheRecalc.CachedFiles[i];
@@ -485,7 +486,7 @@ namespace pwiz.Skyline.Model.Results
             {
                 throw new ChromCacheBuildException(MSDataFilePath, _chromDataSets.Exception);
             }
-            _listCachedFiles.Add(new ChromCachedFile(MSDataFilePath,
+            _listCachedFiles.Add(new ChromCachedFile(MSDataFileUri,
                                      _currentFileInfo.Flags,
                                      _currentFileInfo.LastWriteTime,
                                      _currentFileInfo.StartTime,
@@ -706,7 +707,7 @@ namespace pwiz.Skyline.Model.Results
             // N.B. No retention time prediction for small molecules (yet?), but may be able to pull from libraries
             var lookupSequence = nodePep.SourceUnmodifiedTarget;
             var lookupMods = nodePep.SourceExplicitMods;
-            double[] retentionTimes = _document.Settings.GetRetentionTimes(MSDataFilePath, lookupSequence, lookupMods);
+            double[] retentionTimes = _document.Settings.GetRetentionTimes(MSDataFileUri, lookupSequence, lookupMods);
             bool isAlignedTimes = (retentionTimes.Length == 0);
             if (isAlignedTimes)
             {

@@ -537,7 +537,7 @@ namespace pwiz.Skyline.Model.Lib
 
         public override ExplicitPeakBounds GetExplicitPeakBounds(MsDataFileUri filePath, IEnumerable<Target> peptideSequences)
         {
-            int fileId = FindFileInList(filePath, _sourceFiles);
+            int fileId = FindFileInList(filePath.GetMsDataFileId(), _sourceFiles);
             if (fileId < 0)
             {
                 return null;
@@ -615,7 +615,7 @@ namespace pwiz.Skyline.Model.Lib
 
         public override bool TryGetRetentionTimes(MsDataFileUri filePath, out LibraryRetentionTimes retentionTimes)
         {
-            return TryGetRetentionTimes(FindFileInList(filePath, _sourceFiles), filePath.ToString(), out retentionTimes);
+            return TryGetRetentionTimes(FindFileInList(filePath.GetMsDataFileId(), _sourceFiles), filePath.ToString(), out retentionTimes);
         }
 
         private bool TryGetRetentionTimes(int fileId, string filePath, out LibraryRetentionTimes retentionTimes)
@@ -651,7 +651,7 @@ namespace pwiz.Skyline.Model.Lib
             {
                 return false;
             }
-            int fileId = FindFileInList(filePath, _sourceFiles);
+            int fileId = FindFileInList(filePath.GetMsDataFileId(), _sourceFiles);
             if (fileId < 0)
             {
                 return false;
@@ -673,7 +673,7 @@ namespace pwiz.Skyline.Model.Lib
         public override IEnumerable<double> GetRetentionTimesWithSequences(string filePath, IEnumerable<Target> peptideSequences, ref int? iFile)
         {
             if (!iFile.HasValue)
-                iFile = FindFileInList(MsDataFileUri.Parse(filePath), _sourceFiles);
+                iFile = FindFileInList(MsDataFileId.Parse(filePath), _sourceFiles);
             if (iFile.Value < 0)
             {
                 return new double[0];

@@ -2161,7 +2161,7 @@ namespace pwiz.Skyline.Model
                     else
                     {
                         var explicitPeakBounds = Settings.GetExplicitPeakBounds(_nodePep,
-                            Settings.MeasuredResults.Chromatograms[ResultsIndex].MSDataFileInfos[fileOrder].FilePath);
+                            Settings.MeasuredResults.Chromatograms[ResultsIndex].MSDataFileInfos[fileOrder].FileUri);
                         var chromInfoGroup = FindChromInfo(fileId, step);
                         var calc = new TransitionGroupChromInfoCalculator(Settings,
                                                                           ResultsIndex,

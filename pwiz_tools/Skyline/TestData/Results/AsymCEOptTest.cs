@@ -60,7 +60,7 @@ namespace pwiz.SkylineTestData.Results
             Assert.AreEqual(5*optSteps1 + 5*optSteps2, File.ReadAllLines(tranListPath).Length);
 
             // Then import
-            var resultsUri = new MsDataFilePath(resultsPath);
+            var resultsUri = new MsDataFileLocalUri(resultsPath);
             var chromSet = new ChromatogramSet("Optimize", new[] {resultsUri}, Annotations.EMPTY, optRegression);
             var measuredResults = new MeasuredResults(new[] { chromSet });
 

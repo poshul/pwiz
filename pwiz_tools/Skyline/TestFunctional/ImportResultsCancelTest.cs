@@ -262,7 +262,7 @@ namespace pwiz.SkylineTestFunctional
             WaitForChromatogramManagerQuiet();
             foreach (var file in files)
             {
-                string cacheFile = ChromatogramCache.PartPathForName(SkylineWindow.DocumentFilePath, new MsDataFilePath(file));
+                string cacheFile = ChromatogramCache.PartPathForName(SkylineWindow.DocumentFilePath, new MsDataFileLocalUri(file));
                 FileEx.SafeDelete(cacheFile, true);
             }
         }

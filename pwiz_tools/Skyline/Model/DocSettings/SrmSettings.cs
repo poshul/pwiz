@@ -1119,7 +1119,7 @@ namespace pwiz.Skyline.Model.DocSettings
             return times.ToArray();
         }
 
-        public double[] GetRetentionTimesNotAlignedTo(MsDataFileUri fileNotAlignedTo, Target peptideSequence,
+        public double[] GetRetentionTimesNotAlignedTo(MsDataFileId fileNotAlignedTo, Target peptideSequence,
             ExplicitMods explicitMods, SignedMz[] precursorMzs)
         {
             var times = new List<double>();
@@ -1237,7 +1237,7 @@ namespace pwiz.Skyline.Model.DocSettings
 
         public LibraryRetentionTimes GetRetentionTimes(string name)
         {
-            return GetRetentionTimes(new MsDataFilePath(name));
+            return GetRetentionTimes(new MsDataFileLocalUri(name));
         }
 
         public LibraryIonMobilityInfo GetIonMobilities(LibKey[] targetIons, MsDataFileUri filePath)

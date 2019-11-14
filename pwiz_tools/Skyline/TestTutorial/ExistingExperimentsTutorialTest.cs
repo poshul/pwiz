@@ -216,7 +216,7 @@ namespace pwiz.SkylineTestTutorial
                 var listChanges = new List<ChangedPeakBoundsEventArgs>
                 {
                     new ChangedPeakBoundsEventArgs(pathGroup, null, graphChrom.NameSet,
-                                                    graphChrom.ChromGroupInfos[0].FilePath,
+                                                    graphChrom.ChromGroupInfos[0].FileUri,
                                                     new ScaledRetentionTime(29.8, 29.8),
                                                     new ScaledRetentionTime(30.4, 30.4),
                                                     PeakIdentification.FALSE,
@@ -295,10 +295,10 @@ namespace pwiz.SkylineTestTutorial
             // Importing Data from a Multiple Sample WIFF file, p. 23.
             var importResultsDlg1 = ShowDialog<ImportResultsDlg>(SkylineWindow.ImportResults);
             var openDataSourceDialog1 = ShowDialog<OpenDataSourceDialog>(() => importResultsDlg1.NamedPathSets =
-                                                                        importResultsDlg1.GetDataSourcePathsFile(null));
+                                                                        importResultsDlg1.GetDataSourceUrisFile(null));
             RunUI(() =>
             {
-                openDataSourceDialog1.CurrentDirectory = new MsDataFilePath(GetTestPath("Study 7"));
+                openDataSourceDialog1.CurrentDirectory = new MsDataFileLocalUri(GetTestPath("Study 7"));
                 openDataSourceDialog1.SelectAllFileType(UseRawFilesOrFullData ? ".wiff" : ".mzML"); // Force true wiff for FullData
             });
             if (UseRawFilesOrFullData)

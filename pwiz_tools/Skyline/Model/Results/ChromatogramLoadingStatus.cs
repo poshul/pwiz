@@ -37,27 +37,25 @@ namespace pwiz.Skyline.Model.Results
         public const int MAX_PEAKS_PER_BIN = 3;                // how many peaks to graph per bin
         public const double DISPLAY_FILTER_PERCENT = 0.01;     // filter peaks less than this percentage of maximum intensity
 
-        public ChromatogramLoadingStatus(MsDataFileUri filePath, IEnumerable<string> replicateNames) :
-            base(SampleHelp.GetFileName(filePath))
+        public ChromatogramLoadingStatus(MsDataFileUri fileUri, IEnumerable<string> replicateNames) :
+            base(SampleHelp.GetFileName(fileUri.GetMsDataFileId()))
         {
             Transitions = new TransitionData();
-            DecoratedFilePath = filePath;
-            FilePath = DecoratedFilePath.ToFileId();
+            FileUri = fileUri;
             ReplicateNames = replicateNames;
         }
 
         public TransitionData Transitions { get; private set; }
-        public MsDataFileId FilePath { get; private set; }
-        public MsDataFileUri DecoratedFilePath { get; private set; }
+        public MsDataFileId FilePath => FileUri.GetMsDataFileId();
+        public MsDataFileUri FileUri { get; private set; }
         public bool Importing { get; private set; }
         public IEnumerable<string> ReplicateNames { get; private set; }
 
-        public ChromatogramLoadingStatus ChangeFilePath(MsDataFileUri filePath)
+        public ChromatogramLoadingStatus ChangeFileUri(MsDataFileUri fileUri)
         {
             return ChangeProp(ImClone(this), s =>
             {
-                s.DecoratedFilePath = filePath;
-                s.FilePath = filePath.ToFileId();
+                s.FileUri = fileUri;
             });
         }
 

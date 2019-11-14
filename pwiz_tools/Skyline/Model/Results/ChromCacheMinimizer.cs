@@ -182,7 +182,7 @@ namespace pwiz.Skyline.Model.Results
             for (int fileIndex = 0; fileIndex < Document.Settings.MeasuredResults.Chromatograms.Count; fileIndex++)
             {
                 var chromatogramSet = Document.Settings.MeasuredResults.Chromatograms[fileIndex];
-                if (chromatogramSet.MSDataFilePaths.Any(path=>Equals(path, chromatogramGroupInfo.FilePath)))
+                if (chromatogramSet.MSDataFileIds.Any(path=>Equals(path, chromatogramGroupInfo.FileId)))
                 {
                     fileIndexes.Add(fileIndex);
                 }
@@ -505,12 +505,12 @@ namespace pwiz.Skyline.Model.Results
             public MinStatisticsCollector(ChromCacheMinimizer chromCacheMinimizer)
             {
                 ChromCacheMinimizer = chromCacheMinimizer;
-                var filePathToReplicateIndex = new Dictionary<MsDataFileUri, int>();
+                var filePathToReplicateIndex = new Dictionary<MsDataFileId, int>();
                 var results = Document.Settings.MeasuredResults;
                 for (int i = 0; i < results.Chromatograms.Count; i++)
                 {
                     var chromatogramSet = results.Chromatograms[i];
-                    foreach (var msDataFilePath in chromatogramSet.MSDataFilePaths)
+                    foreach (var msDataFilePath in chromatogramSet.MSDataFileIds)
                     {
                         filePathToReplicateIndex[msDataFilePath] = i;
                     }

@@ -103,7 +103,7 @@ namespace pwiz.Skyline.Model.ElementLocators
                 yield break;
             }
             bool useFullPath = UseFullPath(chromatogramSet);
-            foreach (var filePath in chromatogramSet.MSDataFilePaths)
+            foreach (var filePath in chromatogramSet.MSDataFileUris)
             {
                 var resultFileRef = (ResultFileRef)ChangeName(GetName(filePath));
                 if (useFullPath)
@@ -132,13 +132,13 @@ namespace pwiz.Skyline.Model.ElementLocators
             {
                 return false;
             }
-            return chromatogramSet.MSDataFilePaths.Select(GetName).Distinct().Count() !=
+            return chromatogramSet.MSDataFileUris.Select(GetName).Distinct().Count() !=
                    chromatogramSet.FileCount;
         }
 
-        public static string GetName(MsDataFileUri msDataFilePath)
+        public static string GetName(MsDataFileUri msDataFileUri)
         {
-            return msDataFilePath.GetFileName();
+            return msDataFileUri.GetFileName();
         }
 
         protected bool Equals(ResultFileRef other)

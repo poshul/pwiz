@@ -337,7 +337,7 @@ namespace TestPerf // Note: tests in the "TestPerf" namespace only run when the 
                 var chromSets = new[]
                 {
                     new ChromatogramSet(_replicateName, new[]
-                        { new MsDataFilePath(_dataFile, null, _centroided, _centroided),  }),
+                        { new MsDataFileLocalUri(_dataFile, null, _centroided, _centroided),  }),
                 };
                 var docResults = doc.ChangeMeasuredResults(new MeasuredResults(chromSets));
                 Assert.IsTrue(docContainer.SetDocument(docResults, doc, true));

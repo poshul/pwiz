@@ -119,7 +119,7 @@ namespace pwiz.Skyline.FileUI.PeptideSearch
             using (var dlg = new OpenDataSourceDialog(Settings.Default.RemoteAccountList)
             {
                 Text = Resources.ImportResultsControl_browseToResultsFileButton_Click_Import_Peptide_Search,
-                InitialDirectory = new MsDataFilePath(DocumentDirectory)
+                InitialDirectory = new MsDataFileLocalUri(DocumentDirectory)
             })
             {
                 // Use saved source type, if there is one.

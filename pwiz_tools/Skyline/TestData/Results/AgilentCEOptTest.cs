@@ -65,7 +65,7 @@ namespace pwiz.SkylineTestData.Results
         {
             var optRegression = optFlag ? docContainer.Document.Settings.TransitionSettings.Prediction.CollisionEnergy : null;
             int optSteps = optRegression != null ? optRegression.StepCount*2 + 1 : 1;
-            var resultsUri = new MsDataFilePath(resultsPath);
+            var resultsUri = new MsDataFileLocalUri(resultsPath);
             var chromSet = new ChromatogramSet("Optimize", new[] {resultsUri}, Annotations.EMPTY, optRegression);
             var measuredResults = new MeasuredResults(new[] { chromSet });
             docContainer.ChangeMeasuredResults(measuredResults, 1, 1*optSteps, 3*optSteps);
