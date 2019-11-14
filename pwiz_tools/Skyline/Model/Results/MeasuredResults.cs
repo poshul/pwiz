@@ -1515,7 +1515,7 @@ namespace pwiz.Skyline.Model.Results
                         if (cachedPaths.Count > 0 &&  path is MsDataFileLocalUri)
                         {
                             var dataFilePath = ChromatogramSet.GetExistingDataFilePath(cachePath, path);
-                            if (cachedPaths.Contains(dataFilePath.GetMsDataFileId()))
+                            if (dataFilePath != null && cachedPaths.Contains(dataFilePath.GetMsDataFileId()))
                             {
                                 if (dictReplace == null)
                                     dictReplace = new Dictionary<MsDataFileUri, MsDataFileId>();
