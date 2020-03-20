@@ -25,7 +25,15 @@
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
+#include "blosc_filter.h"
 
+/* Codes for the different compressors shipped with Blosc */
+#define BLOSC_COMP BLOSC_BLOSCLZ
+//#define BLOSC_COMP BLOSC_LZ4
+//#define BLOSC_COMP BLOSC_LZ4HC
+//#define BLOSC_COMP BLOSC_SNAPPY
+//#define BLOSC_COMP BLOSC_ZLIB
+//#define BLOSC_COMP BLOSC_ZSTD
 
 //using namespace std;
 using namespace boost::iostreams;
@@ -34,6 +42,15 @@ using namespace boost::iostreams;
 Connection_mzMLb::Connection_mzMLb(const std::string& id)
 {
     H5Eset_auto(H5E_DEFAULT, NULL, NULL);
+
+    // Enable Blosc Filter
+    char *version, *date;
+    int rblosc;
+
+    // Register Blosc with HDF5 Library
+    rblosc = register_blosc(&version, &date);
+    printf("Blosc version info: %s (%s) Method: %d \n", version, date, BLOSC_COMP);
+    if (rblosc < 0) std::cout<<"BLOSC FAIL!!! "<<rblosc<<std::endl;
 
     // open HDF5 file for reading
     file_ = H5Fopen(id.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -118,6 +135,23 @@ Connection_mzMLb::Connection_mzMLb(const std::string& id, int chunk_size, int co
 {    
     H5Eset_auto(H5E_DEFAULT, NULL, NULL);
 
+    // Enable Blosc Filter
+    char *version, *date;
+    int rblosc;
+    unsigned int blosc_values[7];
+
+    /* But you can also taylor Blosc parameters to your needs */
+    /* 0 to 3 (inclusive) param slots are reserved. */
+    blosc_values[4] = compression_level;       /* compression level */
+    blosc_values[5] = 0;       /* 0: shuffle not active, 1: shuffle active */
+    blosc_values[6] = BLOSC_COMP; /* the actual compressor to use */
+
+    // Register Blosc with HDF5 Library
+    rblosc = register_blosc(&version, &date);
+    //printf("Blosc version info: %s (%s)\n", version, date);
+    printf("Blosc version info: %s Method: %d \n", version,  blosc_values[6]);
+    if (rblosc < 0) std::cout<<"BLOSC FAIL!!! "<<rblosc<<std::endl;
+
     // create/truncate HDF5 file for writing
     hid_t fapl = H5Pcreate(H5P_FILE_ACCESS);
     {
@@ -127,7 +161,7 @@ Connection_mzMLb::Connection_mzMLb(const std::string& id, int chunk_size, int co
         double w0; // Chunk preemption policy
         H5Pget_cache(fapl, &nelemts, &nslots, &nbytes, &w0);
         nbytes = (nbytes > chunk_size) ? nbytes : chunk_size; // Set per dataset cache to twice the chunk size please
-        w0 = 1.0; // since pwiz only writes a spectrum once
+        w0 = 0.75; // since pwiz only writes a spectrum once
         H5Pset_cache(fapl, nelemts, nslots, nbytes, w0);
         file_ = H5Fcreate(id.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, fapl);
         if (file_ < 0)
@@ -139,14 +173,21 @@ Connection_mzMLb::Connection_mzMLb(const std::string& id, int chunk_size, int co
         // create dataset to store mzML XML
         hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
         {        
-            hsize_t cdims = chunk_size;
+            //hsize_t cdims = chunk_size;
+            hsize_t cdims = 1024*1024;
             H5Pset_chunk(dcpl, 1, &cdims);
-            if (compression_level > 0)
-            {
-                hsize_t level = compression_level;
-                H5Pset_deflate(dcpl, level);
-            }
-            H5Pset_fletcher32(dcpl);
+
+            /* Set the filter with 7 params */
+            rblosc = H5Pset_filter(dcpl, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 7, blosc_values);
+            if (rblosc < 0) std::cout<<"BLOSC FAIL!!! "<<rblosc<<std::endl;
+
+            // Use Blosc's shuffle and compression...
+            //if (compression_level > 0)
+            //{
+            //    hsize_t level = compression_level;
+            //    H5Pset_deflate(dcpl, level);
+            //}
+            //H5Pset_fletcher32(dcpl);
             hsize_t maxdims = H5S_UNLIMITED;
             mzML_.space = H5Screate_simple(1, &mzML_.size, &maxdims);
             mzML_.dataset = H5Dcreate(file_, "mzML", H5T_NATIVE_CHAR, mzML_.space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
@@ -447,8 +488,8 @@ std::streamsize Connection_mzMLb::read(const std::string& id, void* buf, std::st
             size_t nbytes; // Size of chunk cache in bytes
             double w0; // Chunk preemption policy
             H5Pget_chunk_cache(dapl, &nslots, &nbytes, &w0);
-             nbytes = (nbytes > chunk_size) ? nbytes : chunk_size; // Set per dataset cache to twice the chunk size please
-            w0 = 1.0; // since pwiz only writes a spectrum once
+            nbytes = (nbytes > chunk_size) ? nbytes : chunk_size; // Set per dataset cache to twice the chunk size please
+            w0 = 0.75; // since pwiz only writes a spectrum once
             H5Pset_chunk_cache(dapl, nslots, nbytes, w0);
             s_.dataset = H5Dopen(file_, id.c_str(), dapl);        
             s_.space = H5Dget_space(s_.dataset);
@@ -528,19 +569,34 @@ std::streamsize Connection_mzMLb::write(const std::string& id, const void* buf, 
     Stream& stream = binary_[id];
     if (!stream.dataset)
     {
+        int rblosc;
+        unsigned int blosc_values[7];
+
+        /* But you can also taylor Blosc parameters to your needs */
+        /* 0 to 3 (inclusive) param slots are reserved. */
+        blosc_values[4] = compression_level_;       /* compression level */
+        blosc_values[5] = 1;       /* 0: shuffle not active, 1: shuffle active */
+        blosc_values[6] = BLOSC_COMP; /* the actual compressor to use */
+
         // create dataset
         hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
         {
             hsize_t cdims = chunk_size_ / bytes;
             H5Pset_chunk(dcpl, 1, &cdims);
 
-            if (compression_level_ > 0)
-            {
-                hsize_t level = compression_level_;
-                if (bytes > 1) H5Pset_shuffle(dcpl);
-                H5Pset_deflate(dcpl, level);
-            }
-            H5Pset_fletcher32(dcpl);
+            /* Set the filter with 7 params */
+            rblosc = H5Pset_filter(dcpl, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 7, blosc_values);
+            if (rblosc < 0) std::cout<<"BLOSC FAIL!!! "<<rblosc<<std::endl;
+
+            // Use Blosc's shuffle and compression...
+            // if (compression_level_ > 0)
+            // {
+            //     hsize_t level = compression_level_;
+            //     if (bytes > 1) H5Pset_shuffle(dcpl);
+            //     H5Pset_deflate(dcpl, level);
+            // }
+
+            //H5Pset_fletcher32(dcpl);
             hsize_t maxdims = H5S_UNLIMITED;
             stream.size = n;
             stream.space = H5Screate_simple(1, &stream.size, &maxdims);

@@ -48,6 +48,8 @@ using ext-hdf5 : 1.8.7 : $(HDF5_SOURCE) ;
 lib pwiz_data_msdata_mzmlb
     : # sources
         Connection_mzMLb.cpp
+        libblosc_filter.a
+        libblosc.a
     : # requirements
         <link>static
         <library>/ext/hdf5//hdf5
