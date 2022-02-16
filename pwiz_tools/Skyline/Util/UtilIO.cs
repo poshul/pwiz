@@ -1004,25 +1004,113 @@ namespace pwiz.Skyline.Util
                 }
             }
         }
+
+        /// <summary>
+        /// Checks to see if the path looks like it is a temporary folder that Windows extracts zip contents to
+        /// when a user opens a file inside of the zip.
+        /// Sets zipFileName to the name of the .zip file.
+        /// </summary>
+        public static bool IsTempZipFolder(string path, out string zipFileName)
+        {
+            zipFileName = null;
+            int indexAppData = path.IndexOf(@"appdata\local\temp", StringComparison.OrdinalIgnoreCase);
+            if (indexAppData < 0)
+            {
+                return false;
+            }
+
+            int indexZipExtension = path.IndexOf(@".zip\", indexAppData, StringComparison.OrdinalIgnoreCase);
+            if (indexZipExtension < 0)
+            {
+                return false;
+            }
+
+            zipFileName = Path.GetFileName(path.Substring(0, indexZipExtension + 4));
+
+            // Windows usually prepends "Temp1_" to the name of the folder, so strip that off if present
+            if (zipFileName.StartsWith(@"Temp1_"))
+            {
+                zipFileName = zipFileName.Substring(6);
+            }
+            return true;
+        }
     }
 
     public static class StreamEx
     {
-        public static void TransferBytes(this Stream inStream, Stream outStream, long lenRead)
+        public static void TransferBytes(this Stream inStream, Stream outStream, long bytesToTransfer)
         {
-            inStream.TransferBytes(outStream, lenRead, new byte[0x40000]); // 256K
+            int bufferSize = (int)Math.Min(bytesToTransfer, 0x40000); // 256K;
+            inStream.TransferBytes(outStream, bytesToTransfer, new byte[bufferSize]);
         }
 
-        public static void TransferBytes(this Stream inStream, Stream outStream, long lenRead, byte[] buffer)
+        public static void TransferBytes(this Stream inStream, Stream outStream, long bytesToTransfer, byte[] buffer)
         {
+            long bytesTransferred = 0;
+            long bytesRemaining = bytesToTransfer;
             int len;
-            while (lenRead > 0 && (len = inStream.Read(buffer, 0, (int)Math.Min(lenRead, buffer.Length))) != 0)
+            while (bytesToTransfer > 0 && (len = inStream.Read(buffer, 0, (int)Math.Min(bytesRemaining, buffer.Length))) != 0)
             {
                 outStream.Write(buffer, 0, len);
-                lenRead -= len;
+                bytesRemaining -= len;
+                bytesTransferred += len;
             }
-        }    
+
+            if (bytesTransferred != bytesToTransfer)
+            {
+                throw new InvalidDataException(string.Format(
+                    @"Tried to transfer {0} bytes, but actual byte count transferred was {1}", bytesToTransfer,
+                    bytesTransferred));
+            }
+        }
     }
+
+    /// <summary>
+    /// Utility class to update progress while reading a large file line by line.
+    /// </summary>
+    public sealed class LineReaderWithProgress : StreamReader
+    {
+        private readonly IProgressMonitor _progressMonitor;
+        private IProgressStatus _status;
+        private long _totalChars;
+        private long _charsRead;
+
+        public LineReaderWithProgress(string path, IProgressMonitor progressMonitor, IProgressStatus status = null) : base(path, Encoding.UTF8)
+        {
+            _progressMonitor = progressMonitor;
+            _status = (status ?? new ProgressStatus()).ChangeMessage(Path.GetFileName(path));
+            _totalChars = new FileInfo(PathEx.SafePath(path)).Length;
+        }
+
+        public override string ReadLine()
+        {
+            var result = base.ReadLine();
+            if (result != null)
+            {
+                _charsRead += result.Length + 1; // This will be increasingly wrong if file has CRLF instead of just LF but should be good enough for a progress bar 
+            }
+            if (_progressMonitor != null)
+            {
+                if (_progressMonitor.IsCanceled)
+                {
+                    throw new OperationCanceledException();
+                }
+                _status = _status.UpdatePercentCompleteProgress(_progressMonitor, _charsRead, _totalChars);
+            }
+            return result;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            // Make sure we reach 100%
+            if (_progressMonitor != null)
+                _status.UpdatePercentCompleteProgress(_progressMonitor, _totalChars, _totalChars);
+
+            base.Dispose(disposing);
+        }
+    }
+
+
 
     /// <summary>
     /// Utility class to update progress while reading a Skyline document.
@@ -1257,14 +1345,12 @@ namespace pwiz.Skyline.Util
     {
         public const string TEMP_PREFIX = "~SK";
 
-        public TemporaryDirectory()
-            : this(Path.Combine(Path.GetTempPath(), TEMP_PREFIX + Path.GetRandomFileName()))
+        public TemporaryDirectory(string dirPath = null, string tempPrefix = TEMP_PREFIX)
         {
-        }
-
-        public TemporaryDirectory(string dirPath)
-        {
-            DirPath = dirPath;
+            if (string.IsNullOrEmpty(dirPath))
+                DirPath = Path.Combine(Path.GetTempPath(), tempPrefix + Path.GetRandomFileName());
+            else
+                DirPath = dirPath;
             Helpers.TryTwice(() => Directory.CreateDirectory(DirPath));
         }
 

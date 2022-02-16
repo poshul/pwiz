@@ -450,6 +450,10 @@ PWIZ_API_DECL std::string Reader_mz5::identify(const string& filename, const str
     {
         return "";
     }
+    catch (...)
+    {
+        return "";
+    }
 
     return "";
 }

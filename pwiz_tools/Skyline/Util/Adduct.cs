@@ -18,6 +18,7 @@
  */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -87,6 +88,14 @@ namespace pwiz.Skyline.Util
 
         private int _hashCode; // We want comparisons to be on the same order as comparing ints, as when we used to just use integer charge instead of proper adducts
 
+        // We tend to see the same strings again and again, save some parsing time by maintaining a threadsafe lookup for each ADDUCT_TYPE
+        private static ConcurrentDictionary<string, Adduct>[] _knownAdducts = new ConcurrentDictionary<string, Adduct>[]
+        {
+            new ConcurrentDictionary<string, Adduct>(),
+            new ConcurrentDictionary<string, Adduct>(),
+            new ConcurrentDictionary<string, Adduct>()
+        };
+
         //
         // Note constructors are private - use FromCharge and FromString instead, which allow reuse
         //
@@ -126,11 +135,40 @@ namespace pwiz.Skyline.Util
                     input = @"[" + input + @"]";
                 }
 
+                // Watch for strange construction from Agilent MP system e.g. (M+H)+ and (M+H)+[-H2O]
+                if (input.StartsWith(@"(") && input.Contains(@")") && input.Contains(@"M"))
+                {
+                    var parts = input.Split('['); // Break off water loss etc, if any
+                    if (parts.Length == 1 || input.IndexOf(')') < input.IndexOf('['))
+                    {
+                        var constructed = parts[0].Replace(@"(", @"[").Replace(@")", @"]");
+                        if (parts.Length > 1) // Deal with water loss etc
+                        {
+                            // Rearrange (M+H)+[-H2O] as [M-H2O+H]+
+                            var mod = parts[1].Split(']')[0]; // Trim end
+                            var mPos = input.IndexOf('M');
+                            constructed = constructed.Substring(0, mPos+1) + mod + constructed.Substring(mPos + 1);
+                        }
+                        if (TryParse(constructed, out _))
+                        {
+                            input = constructed; // Constructed string is parseable
+                        }
+                    }
+                }
+
+
                 // Check for implied positive ion mode - we see "MH", "MH+", "MNH4+" etc in the wild
                 // Also watch for for label-only like  "[M2Cl37]"
                 var posNext = input.IndexOf('M') + 1;
                 if (posNext > 0 && posNext < input.Length)
                 {
+                    var posClose = input.IndexOf(']');
+                    if (posClose >= 0 && posClose < posNext)
+                    {
+                        // This isn't an adduct description, probably actually examining a modified peptide e.g. K[1Ac]IDGFGPMK
+                        throw new InvalidOperationException(
+                            string.Format(Resources.BioMassCalc_ApplyAdductToFormula_Failed_parsing_adduct_description___0__, input));
+                    }
                     if (input[posNext] != '+' && input[posNext] != '-') 
                     {
                         // No leading + or - : is it because description starts with a label, or because + mode is implied?
@@ -182,7 +220,7 @@ namespace pwiz.Skyline.Util
                 {
                     // No leading + or - : is it because description starts with a label, or because + mode is implied?
                     var limit = input.IndexOfAny(new[] { '+', '-', ']' });
-                    if (limit < 0)
+                    if (limit < posNext)
                     {
                         return null;
                     }
@@ -558,10 +596,19 @@ namespace pwiz.Skyline.Util
         {
             if (value == null)
                 return EMPTY;
+
+            // Quick check to see if we've encountered this description before
+            var dict = _knownAdducts[(int)parserMode];
+            if (dict.TryGetValue(value, out var knownAdduct))
+            {
+                return knownAdduct;
+            }
+
             int z;
             if (int.TryParse(value, out z))
             {
-                return FromCharge(z, parserMode);
+                var result = FromCharge(z, parserMode);
+                dict[value] = result; // Cache this on the likely chance that we'll see this representation again
             }
 
             // Reuse the more common non-proteomic adducts
@@ -587,9 +634,11 @@ namespace pwiz.Skyline.Util
             {
                 if (testAdduct.SameEffect(adduct))
                 {
+                    dict[value] = adduct;  // Cache this on the likely chance that we'll see this representation again
                     return adduct;
                 }
             }
+            dict[value] = testAdduct;  // Cache this on the likely chance that we'll see this representation again
             return testAdduct;
         }
 
@@ -1023,7 +1072,8 @@ namespace pwiz.Skyline.Util
                 {"C14", BioMassCalc.C14},
                 {"N15", BioMassCalc.N15},
                 {"O17", BioMassCalc.O17},
-                {"O18", BioMassCalc.O18}
+                {"O18", BioMassCalc.O18},
+                {"Cu65", BioMassCalc.Cu65},
                 // ReSharper restore LocalizableElement
             };
 
@@ -1104,6 +1154,7 @@ namespace pwiz.Skyline.Util
         };
 
         // All the adducts from http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator
+        // And a few more from XCMS public
         public static readonly string[] DEFACTO_STANDARD_ADDUCTS =
         {
             "[M+3H]",       
@@ -1145,7 +1196,9 @@ namespace pwiz.Skyline.Util
             "[M+Cl]",       
             "[M+K-2H]",     
             "[M+FA-H]",     
+            "[M+HCOO]", // Formate (synonym for deprotonated FA)  
             "[M+Hac-H]",    
+            "[M+CH3COO]", // Synonym for deprotonated Hac
             "[M+Br]",       
             "[M+TFA-H]",    
             "[2M-H]",       
@@ -1278,7 +1331,7 @@ namespace pwiz.Skyline.Util
                         {
                             resultDict[unlabeledSymbol] = unlabeledCount; // Number of remaining non-label atoms
                         }
-                        else if (unlabeledCount < 0) // Can't remove that which is not there
+                        else // Can't remove that which is not there
                         {
                             throw new InvalidOperationException(
                                 string.Format(Resources.Adduct_ApplyToMolecule_Adduct___0___calls_for_labeling_more__1__atoms_than_are_found_in_the_molecule__2_,

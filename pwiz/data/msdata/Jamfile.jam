@@ -41,35 +41,24 @@ project
 lib pwiz_data_msdata_version : Version.cpp : <link>static <conditional>@static-with-fpic ;
 
 
-lib pwiz_data_msdata
+lib pwiz_data_msdata_core
     : # sources
         BinaryDataEncoder.cpp
         ChromatogramList_mzML.cpp
         [ mz5-build ChromatogramList_mz5.cpp ]
-        DefaultReaderList.cpp
         Diff.cpp
         IO.cpp
         Index_mzML.cpp
-        LegacyAdapter.cpp
         MSData.cpp
-        MSDataFile.cpp
         MSDataMerger.cpp
         MSNumpress.cpp
         Serializer_mzML.cpp
-        Serializer_mzXML.cpp
-        Serializer_MGF.cpp
-        Serializer_MSn.cpp
-        [ mz5-build Serializer_mz5.cpp ]
         SpectrumInfo.cpp
         SpectrumIterator.cpp
         SpectrumList_mzML.cpp
-        SpectrumList_mzXML.cpp
-        SpectrumList_MGF.cpp
-        SpectrumList_MSn.cpp
-        SpectrumList_BTDX.cpp
+        SpectrumListBase.cpp
         [ mz5-build SpectrumList_mz5.cpp ]
         SpectrumListCache.cpp
-        RAMPAdapter.cpp
         Reader.cpp
         References.cpp
         SpectrumWorkerThreads.cpp
@@ -77,15 +66,14 @@ lib pwiz_data_msdata
         <library>pwiz_data_msdata_version
         <library>../common//pwiz_data_common
         <library>../..//pwiz_version
-		<library>../../utility/misc//pwiz_utility_misc
+		    <library>../../utility/misc//pwiz_utility_misc
         <library>../../utility/minimxml//pwiz_utility_minimxml
         <library>../../utility/chemistry//pwiz_utility_chemistry
         <library>/ext/boost//iostreams/<boost-iostreams-zlib>on
         <library>/ext/boost//filesystem
         <library>/ext/boost//thread
         <library>/ext/zlib//z
-        [ mzmlb-build <library>mzmlb//pwiz_data_msdata_mzmlb ]
-        [ mz5-build <library>mz5//pwiz_data_msdata_mz5 ]
+
     : # default-build
     : # usage-requirements
         <library>pwiz_data_msdata_version
@@ -97,8 +85,34 @@ lib pwiz_data_msdata
         <library>/ext/boost//filesystem
         <library>/ext/boost//thread
         <library>/ext/zlib//z
-        [ mzmlb-build <library>mzmlb//pwiz_data_msdata_mzmlb ]
+    ;
+
+	
+lib pwiz_data_msdata
+    : # sources
+        MSDataFile.cpp # requires mz5 because of special write restrictions
+        [ mz5-build ChromatogramList_mz5.cpp ]
+        DefaultReaderList.cpp
+        LegacyAdapter.cpp
+        Serializer_mzXML.cpp
+        Serializer_MGF.cpp
+        Serializer_MSn.cpp
+        [ mz5-build Serializer_mz5.cpp ]
+        SpectrumList_mzXML.cpp
+        SpectrumList_MGF.cpp
+        SpectrumList_MSn.cpp
+        SpectrumList_BTDX.cpp
+        [ mz5-build SpectrumList_mz5.cpp ]
+        RAMPAdapter.cpp
+    : # requirements
+        <library>pwiz_data_msdata_core
         [ mz5-build <library>mz5//pwiz_data_msdata_mz5 ]
+        [ mzmlb-build <library>mzmlb//pwiz_data_msdata_mzmlb ]
+    : # default-build
+    : # usage-requirements
+        <library>pwiz_data_msdata_core
+        [ mz5-build <library>mz5//pwiz_data_msdata_mz5 ]
+        [ mzmlb-build <library>mzmlb//pwiz_data_msdata_mzmlb ]
     ;
 
 
